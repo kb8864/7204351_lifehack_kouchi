@@ -7,8 +7,8 @@
 1. https://app.supabase.com にアクセス → 新しいプロジェクトを作成
 2. 「SQL Editor」を開き、`supabase/schema.sql` の内容を全てコピーして実行
 3. 「Settings > API」から以下をメモ:
-   - Project URL → `NEXT_PUBLIC_SUPABASE_URL`:https://wmctsjumwgsnfndrdmqm.supabase.co/rest/v1/
-   - anon/public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtY3RzanVtd2dzbmZuZHJkbXFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTM4NDgsImV4cCI6MjA5NDQyOTg0OH0.Q9YJ1yix_wFsuQdZPGrorXzWzPwit7hqSPh-JF0yNYM
+   - Project URL → `NEXT_PUBLIC_SUPABASE_URL`:
+   - anon/public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`:
    - service_role key → `SUPABASE_SERVICE_ROLE_KEY`:
 
 ### 1-2. LINE Developersのチャンネル作成

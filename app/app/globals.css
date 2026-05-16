@@ -45,3 +45,12 @@ body {
   background: var(--border);
   border-radius: 2px;
 }
+
+/* 横スクロールのスクロールバーを非表示 */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

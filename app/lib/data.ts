@@ -1,0 +1,105 @@
+/**
+ * JSONファイルから直接ライフハックデータを読み込むライブラリ
+ *
+ * Supabaseへのseedが完了するまでの間、またはSupabaseが未設定の場合に
+ * ../public/*.json から直接データを取得する。
+ *
+ * グローバルIDの割り当て（Supabase SERIAL IDと一致）:
+ *   food         : 1  〜 25
+ *   health       : 26 〜 34
+ *   costume_make : 35 〜 48
+ *   other        : 49 〜 76
+ */
+
+import * as fs from 'fs'
+import * as path from 'path'
+import type { Category, Lifehack } from '@/types'
+
+const CATEGORY_ORDER: Category[] = ['food', 'health', 'costume_make', 'other']
+
+type RawLifehack = {
+  id: number
+  title?: string
+  description: string
+  author?: string
+  link?: string
+  photo?: string
+  tags: string | string[] | (string | string[])[]
+}
+
+function normalizeTags(tags: RawLifehack['tags']): string[] {
+  if (!tags) return []
+  const flat = Array.isArray(tags)
+    ? (tags as (string | string[])[]).flatMap((t) => (Array.isArray(t) ? t : [t]))
+    : [tags as string]
+  return flat.filter((t): t is string => typeof t === 'string' && t.trim() !== '')
+}
+
+function readJson(category: Category): RawLifehack[] {
+  try {
+    // process.cwd() = /七福ライフハック/app  なので .. で public へ
+    const filePath = path.join(process.cwd(), '..', 'public', `${category}.json`)
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as RawLifehack[]
+  } catch {
+    return []
+  }
+}
+
+// 全データをキャッシュ（プロセス起動中は同じ結果を返す）
+let _cache: Lifehack[] | null = null
+
+export function getAllLifehacks(): Lifehack[] {
+  if (_cache) return _cache
+
+  let globalId = 1
+  const all: Lifehack[] = []
+
+  for (const category of CATEGORY_ORDER) {
+    const raw = readJson(category)
+    for (const item of raw) {
+      all.push({
+        id: globalId++,
+        title: item.title || null,
+        description: item.description,
+        author: item.author || null,
+        link: item.link || null,
+        photo: item.photo || null,
+        category,
+        tags: normalizeTags(item.tags),
+        is_approved: true,
+        created_at: '',
+        favorite_count: 0,
+        is_favorited: false,
+      })
+    }
+  }
+
+  _cache = all
+  return all
+}
+
+export function getLifehacksByCategory(category: Category): Lifehack[] {
+  return getAllLifehacks().filter((lh) => lh.category === category)
+}
+
+export function getLifehackById(id: number): Lifehack | null {
+  return getAllLifehacks().find((lh) => lh.id === id) ?? null
+}
+
+export function searchLifehacks(query: string, category?: Category): Lifehack[] {
+  const source = category ? getLifehacksByCategory(category) : getAllLifehacks()
+  if (!query) return source
+  const q = query.toLowerCase()
+  return source.filter(
+    (lh) =>
+      lh.description.toLowerCase().includes(q) ||
+      (lh.title?.toLowerCase().includes(q))
+  )
+}
+
+export function getCategoryCounts(): Record<Category, number> {
+  const all = getAllLifehacks()
+  const counts: Record<Category, number> = { food: 0, health: 0, costume_make: 0, other: 0 }
+  all.forEach((lh) => counts[lh.category]++)
+  return counts
+}

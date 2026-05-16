@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { createServerClient } from '@/lib/supabase'
+import { searchLifehacks } from '@/lib/data'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
@@ -10,29 +10,14 @@ interface Props {
   searchParams: Promise<{ q?: string; category?: string }>
 }
 
-async function search(query: string, category: string): Promise<Lifehack[]> {
+function search(query: string, category: string): Lifehack[] {
   if (!query && !category) return []
-  const supabase = createServerClient()
-
-  let qb = supabase
-    .from('lifehacks')
-    .select('*')
-    .eq('is_approved', true)
-
-  if (query) {
-    qb = qb.or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-  }
-  if (category) {
-    qb = qb.eq('category', category)
-  }
-
-  const { data } = await qb.order('created_at', { ascending: true })
-  return (data as Lifehack[]) ?? []
+  return searchLifehacks(query, (category as Category) || undefined)
 }
 
 export default async function SearchPage({ searchParams }: Props) {
   const { q = '', category = '' } = await searchParams
-  const results = await search(q, category)
+  const results = search(q, category)
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">

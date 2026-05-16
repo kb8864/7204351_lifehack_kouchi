@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
+import { getLifehackById } from '@/lib/data'
 import { CATEGORIES } from '@/lib/constants'
 import type { Lifehack } from '@/types'
 
@@ -9,27 +10,24 @@ interface RankingRow {
 }
 
 async function getWeeklyRanking(): Promise<{ lifehack: Lifehack; viewCount: number }[]> {
-  const supabase = createServerClient()
-  const { data: ranking } = await supabase
-    .from('weekly_ranking')
-    .select('lifehack_id, view_count')
-    .limit(5)
+  try {
+    const supabase = createServerClient()
+    const { data: ranking } = await supabase
+      .from('weekly_ranking')
+      .select('lifehack_id, view_count')
+      .limit(5)
 
-  if (!ranking || ranking.length === 0) return []
+    if (!ranking || ranking.length === 0) return []
 
-  const ids = (ranking as RankingRow[]).map((r) => r.lifehack_id)
-  const { data: lifehacks } = await supabase
-    .from('lifehacks')
-    .select('*')
-    .in('id', ids)
-    .eq('is_approved', true)
-
-  if (!lifehacks) return []
-
-  return (ranking as RankingRow[]).map((r) => ({
-    lifehack: lifehacks.find((lh) => lh.id === r.lifehack_id) as Lifehack,
-    viewCount: r.view_count,
-  })).filter((item) => item.lifehack)
+    return (ranking as RankingRow[])
+      .map((r) => {
+        const lifehack = getLifehackById(r.lifehack_id)
+        return lifehack ? { lifehack, viewCount: r.view_count } : null
+      })
+      .filter((item): item is { lifehack: Lifehack; viewCount: number } => item !== null)
+  } catch {
+    return []
+  }
 }
 
 const RANK_STYLES = [

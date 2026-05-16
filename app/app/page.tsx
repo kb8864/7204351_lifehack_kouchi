@@ -1,46 +1,49 @@
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
+import { getCategoryCounts as getJsonCounts, getAllLifehacks, getLifehackById } from '@/lib/data'
 import { CATEGORIES } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
-
-async function getCategoryCounts(): Promise<Record<Category, number>> {
-  const supabase = createServerClient()
-  const { data } = await supabase
-    .from('lifehacks')
-    .select('category')
-    .eq('is_approved', true)
-
-  const counts: Record<Category, number> = { food: 0, health: 0, costume_make: 0, other: 0 }
-  data?.forEach((row) => {
-    if (row.category in counts) counts[row.category as Category]++
-  })
-  return counts
-}
+import HomeSearch from '@/components/HomeSearch'
 
 async function getWeeklyRanking(): Promise<Lifehack[]> {
-  const supabase = createServerClient()
-  const { data: ranking } = await supabase
-    .from('weekly_ranking')
-    .select('lifehack_id, view_count')
-    .limit(3)
+  try {
+    const supabase = createServerClient()
+    const { data: ranking } = await supabase
+      .from('weekly_ranking')
+      .select('lifehack_id, view_count')
+      .limit(3)
 
-  if (!ranking || ranking.length === 0) return []
+    if (!ranking || ranking.length === 0) return []
 
-  const ids = ranking.map((r: { lifehack_id: number }) => r.lifehack_id)
-  const { data: lifehacks } = await supabase
-    .from('lifehacks')
-    .select('*')
-    .in('id', ids)
-    .eq('is_approved', true)
+    const lifehacks = ranking
+      .map((r: { lifehack_id: number }) => getLifehackById(r.lifehack_id))
+      .filter((lh): lh is Lifehack => lh !== null)
 
-  return (lifehacks as Lifehack[]) ?? []
+    return lifehacks
+  } catch {
+    return []
+  }
 }
 
 export default async function HomePage() {
-  const [counts, rankingLifehacks] = await Promise.all([
-    getCategoryCounts(),
-    getWeeklyRanking(),
-  ])
+  const counts = getJsonCounts()
+  const rankingLifehacks = await getWeeklyRanking()
+
+  // 検索用データとサジェストタグを準備
+  const allLifehacks = getAllLifehacks()
+  const searchLifehacks = allLifehacks.map((lh) => ({
+    id: lh.id,
+    title: lh.title,
+    description: lh.description,
+    tags: lh.tags,
+    category: lh.category,
+  }))
+  const tagFreq: Record<string, number> = {}
+  allLifehacks.forEach((lh) => lh.tags.forEach((t) => { tagFreq[t] = (tagFreq[t] ?? 0) + 1 }))
+  const popularTags = Object.entries(tagFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([tag]) => tag)
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-8">
@@ -51,18 +54,12 @@ export default async function HomePage() {
           夏のライフハック集
         </h2>
         <p className="text-[#8E8E93] text-sm">
-          高知よさこいを乗り切る、メンバーの知恵をまとめました
+          高知よさこいを乗り切るためのライフハックをまとめました
         </p>
       </div>
 
-      {/* 全体検索 */}
-      <Link
-        href="/search"
-        className="flex items-center gap-2 bg-white border border-[#E5E5EA] rounded-xl px-4 py-3 text-[#8E8E93] hover:border-[#E85A2C] transition-colors shadow-sm"
-      >
-        <span>🔍</span>
-        <span className="text-sm">ライフハックを検索...</span>
-      </Link>
+      {/* インライン検索（画面遷移なし） */}
+      <HomeSearch lifehacks={searchLifehacks} popularTags={popularTags} />
 
       {/* カテゴリカード */}
       <section>

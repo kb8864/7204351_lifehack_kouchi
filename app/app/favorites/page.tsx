@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
+import { getLifehackById } from '@/lib/data'
 import type { Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 
@@ -16,16 +17,10 @@ export default async function FavoritesPage() {
 
   const ids = favs?.map((f) => f.lifehack_id) ?? []
 
-  let lifehacks: Lifehack[] = []
-  if (ids.length > 0) {
-    const { data } = await supabase
-      .from('lifehacks')
-      .select('*')
-      .in('id', ids)
-      .eq('is_approved', true)
-    lifehacks = (data as Lifehack[]) ?? []
-    lifehacks.forEach((lh) => { lh.is_favorited = true })
-  }
+  const lifehacks: Lifehack[] = ids
+    .map((id) => getLifehackById(id))
+    .filter((lh): lh is Lifehack => lh !== null)
+    .map((lh) => ({ ...lh, is_favorited: true }))
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">

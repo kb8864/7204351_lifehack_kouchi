@@ -4,8 +4,8 @@ import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
 import { fetchOGPImage } from '@/lib/ogp'
+import { getLifehackById } from '@/lib/data'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
-import type { Lifehack } from '@/types'
 import FavoriteButton from '@/components/FavoriteButton'
 
 interface Props {
@@ -13,8 +13,12 @@ interface Props {
 }
 
 async function recordView(lifehackId: number) {
-  const supabase = createServerClient()
-  await supabase.from('views').insert({ lifehack_id: lifehackId })
+  try {
+    const supabase = createServerClient()
+    await supabase.from('views').insert({ lifehack_id: lifehackId })
+  } catch {
+    // Supabase未設定でも無視
+  }
 }
 
 export default async function LifehackDetailPage({ params }: Props) {
@@ -22,45 +26,38 @@ export default async function LifehackDetailPage({ params }: Props) {
   const lifehackId = parseInt(id, 10)
   if (isNaN(lifehackId)) notFound()
 
-  const supabase = createServerClient()
-  const { data: lh } = await supabase
-    .from('lifehacks')
-    .select('*')
-    .eq('id', lifehackId)
-    .eq('is_approved', true)
-    .single()
+  const lifehack = getLifehackById(lifehackId)
+  if (!lifehack) notFound()
 
-  if (!lh) notFound()
-
-  const lifehack = lh as Lifehack
-
-  // 並列で閲覧数・お気に入り・OGP・セッションを取得
   const session = await getSession()
-  const [favoriteData, ogpImage] = await Promise.all([
-    supabase
-      .from('favorites')
-      .select('lifehack_id, count:lifehack_id')
-      .eq('lifehack_id', lifehackId),
-    lifehack.link && !lifehack.photo ? fetchOGPImage(lifehack.link) : Promise.resolve(null),
-  ])
 
-  // お気に入り数
-  const { data: favCount } = await supabase
-    .from('favorites')
-    .select('id', { count: 'exact' })
-    .eq('lifehack_id', lifehackId)
-  const totalFavorites = favCount?.length ?? 0
-
-  // 自分がお気に入りしているか
+  // お気に入り情報とOGP画像を並列取得（Supabase失敗時はデフォルト値）
+  let totalFavorites = 0
   let isFavorited = false
-  if (session) {
-    const { data: myFav } = await supabase
-      .from('favorites')
-      .select('id')
-      .eq('user_id', session.id)
-      .eq('lifehack_id', lifehackId)
-      .single()
-    isFavorited = !!myFav
+  let ogpImage: string | null = null
+
+  try {
+    const supabase = createServerClient()
+    const [favCountResult, ogpResult] = await Promise.all([
+      supabase.from('favorites').select('id', { count: 'exact' }).eq('lifehack_id', lifehackId),
+      lifehack.link && !lifehack.photo ? fetchOGPImage(lifehack.link) : Promise.resolve(null),
+    ])
+    totalFavorites = favCountResult.data?.length ?? 0
+    ogpImage = ogpResult
+
+    if (session) {
+      const { data: myFav } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', session.id)
+        .eq('lifehack_id', lifehackId)
+        .single()
+      isFavorited = !!myFav
+    }
+  } catch {
+    if (lifehack.link && !lifehack.photo) {
+      ogpImage = await fetchOGPImage(lifehack.link).catch(() => null)
+    }
   }
 
   // 閲覧数を記録（fire and forget）

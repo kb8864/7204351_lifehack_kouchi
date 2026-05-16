@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
 import { getSession } from '@/lib/auth'
+import { getLifehacksByCategory, searchLifehacks } from '@/lib/data'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 import CategoryFilter from '@/components/CategoryFilter'
@@ -18,45 +20,49 @@ async function getLifehacks(
   query: string,
   userId: string | null
 ): Promise<Lifehack[]> {
-  const supabase = createServerClient()
+  // JSONから取得してフィルタリング
+  let lifehacks = query
+    ? searchLifehacks(query, category)
+    : getLifehacksByCategory(category)
 
-  let qb = supabase
-    .from('lifehacks')
-    .select(`
-      *,
-      favorite_count:favorites(count)
-    `)
-    .eq('category', category)
-    .eq('is_approved', true)
-    .order('created_at', { ascending: true })
+  if (tag) {
+    lifehacks = lifehacks.filter((lh) => lh.tags.includes(tag))
+  }
 
-  if (tag) qb = qb.contains('tags', [tag])
-  if (query) qb = qb.ilike('description', `%${query}%`)
-
-  const { data } = await qb
-
-  // favorite_countをflatten
-  const lifehacks: Lifehack[] = (data ?? []).map((row: Record<string, unknown>) => {
-    const favArr = row.favorite_count as { count: number }[] | null
-    return {
-      ...row,
-      favorite_count: favArr?.[0]?.count ?? 0,
-    } as Lifehack
-  })
-
-  // ユーザーがお気に入りしているものを取得
-  if (userId) {
+  // Supabaseからお気に入り情報をオーバーレイ（失敗しても続行）
+  try {
+    const supabase = createServerClient()
     const ids = lifehacks.map((lh) => lh.id)
-    const { data: favs } = await supabase
+
+    // お気に入り数を取得
+    const { data: favCounts } = await supabase
       .from('favorites')
       .select('lifehack_id')
-      .eq('user_id', userId)
       .in('lifehack_id', ids)
 
-    const favSet = new Set(favs?.map((f) => f.lifehack_id) ?? [])
-    lifehacks.forEach((lh) => {
-      lh.is_favorited = favSet.has(lh.id)
+    const countMap: Record<number, number> = {}
+    favCounts?.forEach((f) => {
+      countMap[f.lifehack_id] = (countMap[f.lifehack_id] ?? 0) + 1
     })
+
+    // ユーザーのお気に入りを取得
+    let favSet = new Set<number>()
+    if (userId) {
+      const { data: myFavs } = await supabase
+        .from('favorites')
+        .select('lifehack_id')
+        .eq('user_id', userId)
+        .in('lifehack_id', ids)
+      favSet = new Set(myFavs?.map((f) => f.lifehack_id) ?? [])
+    }
+
+    lifehacks = lifehacks.map((lh) => ({
+      ...lh,
+      favorite_count: countMap[lh.id] ?? 0,
+      is_favorited: favSet.has(lh.id),
+    }))
+  } catch {
+    // Supabase未設定でも表示は継続
   }
 
   return lifehacks
@@ -77,13 +83,37 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const lifehacks = await getLifehacks(category, tag, q, session?.id ?? null)
   const allTags = [...new Set(lifehacks.flatMap((lh) => lh.tags))]
 
+  const otherCategories = (Object.entries(CATEGORIES) as [Category, (typeof CATEGORIES)[Category]][])
+    .filter(([slug]) => slug !== category)
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+      {/* パンくず */}
+      <nav className="flex items-center gap-1.5 text-sm text-[#8E8E93]">
+        <Link href="/" className="hover:text-[#E85A2C] transition-colors">ホーム</Link>
+        <span>›</span>
+        <span className={info.color}>{info.icon} {info.label}</span>
+      </nav>
+
       {/* ヘッダー */}
       <div className={`${info.bgColor} ${info.borderColor} border-2 rounded-2xl p-5`}>
         <div className="text-4xl mb-1">{info.icon}</div>
         <h1 className={`text-2xl font-bold ${info.color}`}>{info.label}</h1>
         <p className="text-sm text-[#8E8E93] mt-1">{lifehacks.length}件のライフハック</p>
+      </div>
+
+      {/* 他カテゴリへの動線 */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {otherCategories.map(([slug, cat]) => (
+          <Link
+            key={slug}
+            href={`/${slug}`}
+            className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full border-2 text-sm font-medium transition-all hover:shadow-sm ${cat.bgColor} ${cat.borderColor} ${cat.color}`}
+          >
+            <span>{cat.icon}</span>
+            <span>{cat.label}</span>
+          </Link>
+        ))}
       </div>
 
       {/* フィルター */}
