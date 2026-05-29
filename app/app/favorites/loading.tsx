@@ -1,0 +1,23 @@
+export default function FavoritesLoading() {
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-4 animate-pulse">
+      <div className="h-7 bg-gray-200 rounded w-40" />
+      <div className="h-4 bg-gray-200 rounded w-24" />
+      <div className="grid grid-cols-2 gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="rounded-2xl overflow-hidden border border-gray-100">
+            <div className="h-36 bg-gray-200" />
+            <div className="p-3 space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-full" />
+              <div className="h-3 bg-gray-200 rounded w-2/3" />
+              <div className="flex gap-1">
+                <div className="h-4 w-10 bg-gray-200 rounded-full" />
+                <div className="h-4 w-10 bg-gray-200 rounded-full" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

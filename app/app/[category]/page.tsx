@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
@@ -13,6 +14,16 @@ interface Props {
   params: Promise<{ category: string }>
   searchParams: Promise<{ tag?: string; q?: string }>
 }
+
+const getCachedFavCounts = unstable_cache(
+  async (ids: number[]) => {
+    const supabase = createServerClient()
+    const { data } = await supabase.from('favorites').select('lifehack_id').in('lifehack_id', ids)
+    return data ?? []
+  },
+  ['fav-counts'],
+  { revalidate: 60 }
+)
 
 async function getLifehacks(
   category: Category,
@@ -34,16 +45,16 @@ async function getLifehacks(
     const supabase = createServerClient()
     const ids = lifehacks.map((lh) => lh.id)
 
-    // お気に入り数とユーザーのお気に入りを並列取得
-    const [favCountsResult, myFavsResult] = await Promise.all([
-      supabase.from('favorites').select('lifehack_id').in('lifehack_id', ids),
+    // お気に入り数（キャッシュあり）とユーザーのお気に入りを並列取得
+    const [favCounts, myFavsResult] = await Promise.all([
+      getCachedFavCounts(ids),
       userId
         ? supabase.from('favorites').select('lifehack_id').eq('user_id', userId).in('lifehack_id', ids)
         : Promise.resolve({ data: [] as { lifehack_id: number }[] }),
     ])
 
     const countMap: Record<number, number> = {}
-    ;(favCountsResult.data ?? []).forEach((f) => {
+    favCounts.forEach((f) => {
       countMap[f.lifehack_id] = (countMap[f.lifehack_id] ?? 0) + 1
     })
     const favSet = new Set<number>(
