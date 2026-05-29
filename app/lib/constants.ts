@@ -7,7 +7,7 @@ export const CATEGORIES: Record<Category, CategoryInfo> = {
     color: 'text-orange-600',
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-200',
-    image: '/images/食事.jpg',
+    image: '/images/food.jpg',
   },
   health: {
     label: '体調管理',
@@ -15,7 +15,7 @@ export const CATEGORIES: Record<Category, CategoryInfo> = {
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
-    image: '/images/体調管理.jpg',
+    image: '/images/health.jpg',
   },
   costume_make: {
     label: '衣装・メイク',
@@ -23,7 +23,7 @@ export const CATEGORIES: Record<Category, CategoryInfo> = {
     color: 'text-pink-600',
     bgColor: 'bg-pink-50',
     borderColor: 'border-pink-200',
-    image: '/images/衣装・メイク.jpg',
+    image: '/images/costume_make.jpg',
   },
   other: {
     label: 'その他',
@@ -31,7 +31,7 @@ export const CATEGORIES: Record<Category, CategoryInfo> = {
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
-    image: '/images/その他.jpg',
+    image: '/images/other.jpg',
   },
 }
 
