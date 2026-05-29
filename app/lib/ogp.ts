@@ -15,7 +15,7 @@ export async function fetchOGPImage(url: string): Promise<string | null> {
   // 新規フェッチ
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 5000)
+    const timeout = setTimeout(() => controller.abort(), 2000)
     const res = await fetch(url, {
       signal: controller.signal,
       headers: {

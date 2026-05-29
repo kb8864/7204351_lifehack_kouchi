@@ -1,3 +1,5 @@
+export const revalidate = 3600
+
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { getCategoryCounts as getJsonCounts, getAllLifehacks, getLifehackById } from '@/lib/data'

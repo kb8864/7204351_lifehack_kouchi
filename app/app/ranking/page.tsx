@@ -1,3 +1,5 @@
+export const revalidate = 600
+
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { getLifehackById } from '@/lib/data'

@@ -38,22 +38,16 @@ export default async function LifehackDetailPage({ params }: Props) {
 
   try {
     const supabase = createServerClient()
-    const [favCountResult, ogpResult] = await Promise.all([
+    const [favCountResult, ogpResult, myFavResult] = await Promise.all([
       supabase.from('favorites').select('id', { count: 'exact' }).eq('lifehack_id', lifehackId),
       lifehack.link && !lifehack.photo ? fetchOGPImage(lifehack.link) : Promise.resolve(null),
+      session
+        ? supabase.from('favorites').select('id').eq('user_id', session.id).eq('lifehack_id', lifehackId).maybeSingle()
+        : Promise.resolve({ data: null }),
     ])
     totalFavorites = favCountResult.data?.length ?? 0
     ogpImage = ogpResult
-
-    if (session) {
-      const { data: myFav } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('user_id', session.id)
-        .eq('lifehack_id', lifehackId)
-        .single()
-      isFavorited = !!myFav
-    }
+    isFavorited = !!myFavResult.data
   } catch {
     if (lifehack.link && !lifehack.photo) {
       ogpImage = await fetchOGPImage(lifehack.link).catch(() => null)

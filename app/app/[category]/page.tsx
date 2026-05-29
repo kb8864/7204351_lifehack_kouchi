@@ -34,27 +34,21 @@ async function getLifehacks(
     const supabase = createServerClient()
     const ids = lifehacks.map((lh) => lh.id)
 
-    // お気に入り数を取得
-    const { data: favCounts } = await supabase
-      .from('favorites')
-      .select('lifehack_id')
-      .in('lifehack_id', ids)
+    // お気に入り数とユーザーのお気に入りを並列取得
+    const [favCountsResult, myFavsResult] = await Promise.all([
+      supabase.from('favorites').select('lifehack_id').in('lifehack_id', ids),
+      userId
+        ? supabase.from('favorites').select('lifehack_id').eq('user_id', userId).in('lifehack_id', ids)
+        : Promise.resolve({ data: [] as { lifehack_id: number }[] }),
+    ])
 
     const countMap: Record<number, number> = {}
-    favCounts?.forEach((f) => {
+    ;(favCountsResult.data ?? []).forEach((f) => {
       countMap[f.lifehack_id] = (countMap[f.lifehack_id] ?? 0) + 1
     })
-
-    // ユーザーのお気に入りを取得
-    let favSet = new Set<number>()
-    if (userId) {
-      const { data: myFavs } = await supabase
-        .from('favorites')
-        .select('lifehack_id')
-        .eq('user_id', userId)
-        .in('lifehack_id', ids)
-      favSet = new Set(myFavs?.map((f) => f.lifehack_id) ?? [])
-    }
+    const favSet = new Set<number>(
+      (myFavsResult.data ?? []).map((f) => f.lifehack_id)
+    )
 
     lifehacks = lifehacks.map((lh) => ({
       ...lh,
