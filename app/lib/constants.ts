@@ -62,4 +62,4 @@ export const TAG_COLORS: Record<string, string> = {
 export const DEFAULT_TAG_COLOR = 'bg-gray-400'
 
 export const COOKIE_NAME = 'shichifuku_session'
-export const SESSION_DURATION = 60 * 60 * 24 * 7 // 7 days in seconds
+export const SESSION_DURATION = 60 * 60 * 24 * 365 // 365 days in seconds
