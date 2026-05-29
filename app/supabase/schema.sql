@@ -27,19 +27,19 @@ CREATE TABLE IF NOT EXISTS lifehacks (
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- お気に入りテーブル
+-- お気に入りテーブル（lifehack_idはJSON管理のためFK制約なし）
 CREATE TABLE IF NOT EXISTS favorites (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
-  lifehack_id INTEGER REFERENCES lifehacks(id) ON DELETE CASCADE,
+  lifehack_id INTEGER NOT NULL,
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, lifehack_id)
 );
 
--- 閲覧数テーブル（週間ランキング用）
+-- 閲覧数テーブル（週間ランキング用、lifehack_idはJSON管理のためFK制約なし）
 CREATE TABLE IF NOT EXISTS views (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  lifehack_id INTEGER REFERENCES lifehacks(id) ON DELETE CASCADE,
+  lifehack_id INTEGER NOT NULL,
   viewed_at   TIMESTAMPTZ DEFAULT NOW()
 );
 

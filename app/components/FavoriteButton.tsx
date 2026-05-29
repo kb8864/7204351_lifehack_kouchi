@@ -32,10 +32,12 @@ export default function FavoriteButton({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lifehack_id: lifehackId }),
       })
+      const data = await res.json()
       if (res.ok) {
-        const data = await res.json()
         setFavorited(data.favorited)
         setCount((prev) => prev + (data.favorited ? 1 : -1))
+      } else {
+        alert('お気に入りの登録に失敗しました。しばらくしてから再試行してください。')
       }
     } finally {
       setLoading(false)

@@ -62,12 +62,17 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
         </div>
 
         {/* お気に入り数 */}
-        {typeof lifehack.favorite_count === 'number' && (
-          <div className="flex items-center gap-1 text-xs text-[#8E8E93]">
-            <span>❤️</span>
-            <span>{lifehack.favorite_count}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-1 text-xs mt-1">
+          <span>❤️</span>
+          <span className={
+            (lifehack.favorite_count ?? 0) > 0
+              ? 'font-semibold text-red-500'
+              : 'text-[#C7C7CC]'
+          }>
+            {lifehack.favorite_count ?? 0}
+          </span>
+          <span className="text-[#C7C7CC]">件のお気に入り</span>
+        </div>
       </div>
     </Link>
   )

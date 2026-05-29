@@ -26,11 +26,13 @@ export async function POST(req: Request) {
 
   if (existing) {
     // 削除
-    await supabase.from('favorites').delete().eq('id', existing.id)
+    const { error: delError } = await supabase.from('favorites').delete().eq('id', existing.id)
+    if (delError) return NextResponse.json({ error: delError.message }, { status: 500 })
     return NextResponse.json({ favorited: false })
   } else {
     // 追加
-    await supabase.from('favorites').insert({ user_id: session.id, lifehack_id })
+    const { error: insError } = await supabase.from('favorites').insert({ user_id: session.id, lifehack_id })
+    if (insError) return NextResponse.json({ error: insError.message }, { status: 500 })
     return NextResponse.json({ favorited: true })
   }
 }

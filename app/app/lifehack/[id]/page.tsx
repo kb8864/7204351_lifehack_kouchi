@@ -121,8 +121,8 @@ export default async function LifehackDetailPage({ params }: Props) {
             {lifehack.description}
           </div>
 
-          {/* 商品リンク */}
-          {lifehack.link && (
+          {/* 商品リンク（httpで始まる正当なURLがある場合のみ表示） */}
+          {lifehack.link?.startsWith('http') && (
             <div>
               <a
                 href={lifehack.link}
