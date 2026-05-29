@@ -75,12 +75,12 @@ export default async function HomePage() {
                 href={`/${slug}`}
                 className={`${info.borderColor} border-2 rounded-2xl overflow-hidden hover:shadow-md transition-all bg-white`}
               >
-                <div className="relative w-full h-24">
+                <div className="relative w-full h-24 bg-white">
                   <Image
                     src={info.image}
                     alt={info.label}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </div>
                 <div className={`${info.bgColor} px-3 py-2`}>
