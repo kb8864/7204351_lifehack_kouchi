@@ -53,12 +53,13 @@ export default async function HomePage() {
       {/* ヒーロー */}
       <div className="text-center py-4">
         <p className="text-[#8E8E93] text-sm mb-1">七福よさこい連祝禧</p>
+        <p className="text-[#8E8E93] text-sm">
+          今年最高の夏を過ごすあなたへ
+        </p>
+
         <h2 className="text-2xl font-bold text-[#1C1C1E] mb-2">
           夏のライフハック集
         </h2>
-        <p className="text-[#8E8E93] text-sm">
-          高知よさこいを乗り切るためのライフハックをまとめました
-        </p>
       </div>
 
       {/* インライン検索（画面遷移なし） */}
@@ -75,14 +76,13 @@ export default async function HomePage() {
                 href={`/${slug}`}
                 className={`${info.borderColor} border-2 rounded-2xl overflow-hidden hover:shadow-md transition-all bg-white`}
               >
-                <div className="relative w-full h-24 bg-white">
-                  <Image
-                    src={info.image}
-                    alt={info.label}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
+                <Image
+                  src={info.image}
+                  alt={info.label}
+                  width={400}
+                  height={400}
+                  className="w-full h-auto"
+                />
                 <div className={`${info.bgColor} px-3 py-2`}>
                   <div className={`font-bold text-sm ${info.color}`}>{info.icon} {info.label}</div>
                   <div className="text-xs text-[#8E8E93] mt-0.5">{counts[slug]}件のハック</div>
