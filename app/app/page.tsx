@@ -1,6 +1,7 @@
 export const revalidate = 3600
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
 import { getCategoryCounts as getJsonCounts, getAllLifehacks, getLifehackById } from '@/lib/data'
 import { CATEGORIES } from '@/lib/constants'
@@ -72,12 +73,19 @@ export default async function HomePage() {
               <Link
                 key={slug}
                 href={`/${slug}`}
-                className={`${info.bgColor} ${info.borderColor} border-2 rounded-2xl p-4 hover:shadow-md transition-all`}
+                className={`${info.borderColor} border-2 rounded-2xl overflow-hidden hover:shadow-md transition-all bg-white`}
               >
-                <div className="text-3xl mb-2">{info.icon}</div>
-                <div className={`font-bold text-base ${info.color}`}>{info.label}</div>
-                <div className="text-xs text-[#8E8E93] mt-0.5">
-                  {counts[slug]}件のハック
+                <div className="relative w-full h-24">
+                  <Image
+                    src={info.image}
+                    alt={info.label}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className={`${info.bgColor} px-3 py-2`}>
+                  <div className={`font-bold text-sm ${info.color}`}>{info.icon} {info.label}</div>
+                  <div className="text-xs text-[#8E8E93] mt-0.5">{counts[slug]}件のハック</div>
                 </div>
               </Link>
             )

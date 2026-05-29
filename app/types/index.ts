@@ -49,4 +49,5 @@ export interface CategoryInfo {
   color: string
   bgColor: string
   borderColor: string
+  image: string
 }
