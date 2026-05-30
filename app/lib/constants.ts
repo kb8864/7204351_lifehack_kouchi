@@ -9,15 +9,7 @@ export const CATEGORIES: Record<Category, CategoryInfo> = {
     borderColor: 'border-orange-200',
     image: '/images/food.jpg',
   },
-  health: {
-    label: '体調管理',
-    icon: '💪',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
-    image: '/images/health.jpg',
-  },
-  costume_make: {
+costume_make: {
     label: '衣装・メイク',
     icon: '👘',
     color: 'text-pink-600',

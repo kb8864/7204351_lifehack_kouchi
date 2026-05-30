@@ -15,7 +15,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import type { Category, Lifehack } from '@/types'
 
-const CATEGORY_ORDER: Category[] = ['food', 'health', 'costume_make', 'other']
+const CATEGORY_ORDER: Category[] = ['food', 'costume_make', 'other']
 
 type RawLifehack = {
   id: number
@@ -99,7 +99,7 @@ export function searchLifehacks(query: string, category?: Category): Lifehack[] 
 
 export function getCategoryCounts(): Record<Category, number> {
   const all = getAllLifehacks()
-  const counts: Record<Category, number> = { food: 0, health: 0, costume_make: 0, other: 0 }
+  const counts: Record<Category, number> = { food: 0, costume_make: 0, other: 0 }
   all.forEach((lh) => counts[lh.category]++)
   return counts
 }

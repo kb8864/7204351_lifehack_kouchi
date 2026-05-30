@@ -1,4 +1,4 @@
-export type Category = 'food' | 'health' | 'costume_make' | 'other'
+export type Category = 'food' | 'costume_make' | 'other'
 
 export interface Lifehack {
   id: number
