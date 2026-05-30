@@ -67,13 +67,13 @@ export default async function HomePage() {
       {/* カテゴリカード */}
       <section>
         <h3 className="font-bold text-[#1C1C1E] mb-3">カテゴリから探す</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {(Object.entries(CATEGORIES) as [Category, (typeof CATEGORIES)[Category]][]).map(
             ([slug, info]) => (
               <Link
                 key={slug}
                 href={`/${slug}`}
-                className={`${info.borderColor} border-2 rounded-2xl overflow-hidden hover:shadow-md transition-all bg-white`}
+                className={`${info.borderColor} border-2 rounded-2xl overflow-hidden hover:shadow-md transition-all bg-white shrink-0 w-52`}
               >
                 <Image
                   src={info.image}
