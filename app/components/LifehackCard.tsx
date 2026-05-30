@@ -34,7 +34,7 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
         ) : (
           <span className="text-4xl opacity-30">
             {lifehack.category === 'food' ? '🥢' :
-             lifehack.category === 'health' ? '💪' :
+   
              lifehack.category === 'costume_make' ? '👘' : '📦'}
           </span>
         )}
