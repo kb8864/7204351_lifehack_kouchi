@@ -39,7 +39,6 @@ export default function Header({ session }: HeaderProps) {
                 className="flex items-center gap-1 text-sm text-[#8E8E93] hover:text-red-500 transition-colors px-1"
                 title="お気に入り"
               >
-                <span>❤️</span>
                 <span className="hidden sm:inline text-xs font-medium">お気に入り</span>
               </Link>
               {session.isAdmin && (

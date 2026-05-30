@@ -52,13 +52,12 @@ export default async function HomePage() {
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-8">
       {/* ヒーロー */}
       <div className="text-center py-4">
-        <p className="text-[#8E8E93] text-sm mb-1">七福よさこい連祝禧</p>
         <p className="text-[#8E8E93] text-sm">
           今年最高の夏を過ごすあなたへ
         </p>
 
         <h2 className="text-2xl font-bold text-[#1C1C1E] mb-2">
-          夏のライフハック集
+          七福　夏のライフハック集
         </h2>
       </div>
 

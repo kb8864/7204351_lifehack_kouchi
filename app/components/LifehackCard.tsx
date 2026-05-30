@@ -63,7 +63,7 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
 
         {/* お気に入り数 */}
         <div className="flex items-center gap-1 text-xs mt-1">
-          <span>❤️</span>
+
           <span className={
             (lifehack.favorite_count ?? 0) > 0
               ? 'font-semibold text-red-500'
