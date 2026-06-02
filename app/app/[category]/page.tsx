@@ -1,3 +1,5 @@
+export const revalidate = 60
+
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { unstable_cache } from 'next/cache'
