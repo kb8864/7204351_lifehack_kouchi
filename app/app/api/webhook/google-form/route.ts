@@ -1,24 +1,22 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
-import { CATEGORY_SLUGS } from '@/lib/constants'
+import { CATEGORY_SLUGS, TAG_COLORS } from '@/lib/constants'
 import type { Category } from '@/types'
 
-/**
- * Google Apps ScriptからのWebhookを受け取るエンドポイント
- *
- * リクエスト例:
- * POST /api/webhook/google-form
- * Authorization: Bearer <WEBHOOK_SECRET>
- * {
- *   "title": "任意のタイトル",
- *   "description": "本文（必須）",
- *   "author": "投稿者名",
- *   "category": "food",
- *   "link": "https://...",
- *   "photo": "https://...",
- *   "tags": "熱中症対策,ご飯"
- * }
- */
+// カタカナ → ひらがな に変換（タグ名の表記ゆれを吸収）
+function normalizeTag(tag: string): string {
+  return tag.trim().replace(/[\u30A1-\u30F6]/g, (c) =>
+    String.fromCharCode(c.charCodeAt(0) - 0x60)
+  )
+}
+
+// 入力タグを既存タグ（TAG_COLORS）と照合し、一致すれば既存タグ名を返す
+function resolveTag(input: string, existingTags: string[]): string {
+  const normalized = normalizeTag(input)
+  const match = existingTags.find((t) => normalizeTag(t) === normalized)
+  return match ?? input.trim()
+}
+
 export async function POST(req: Request) {
   // シークレット認証
   const auth = req.headers.get('Authorization')
@@ -41,9 +39,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
   }
 
-  // tagsの処理: "熱中症対策,ご飯" → ["熱中症対策", "ご飯"]
+  // タグの処理: カンマ区切り文字列 → 正規化済み配列
+  const existingTags = Object.keys(TAG_COLORS)
   const tagsArray = tags
-    ? String(tags).split(',').map((t: string) => t.trim()).filter(Boolean)
+    ? String(tags)
+        .split(',')
+        .map((t: string) => resolveTag(t, existingTags))
+        .filter(Boolean)
     : []
 
   const supabase = createServerClient()
@@ -55,12 +57,12 @@ export async function POST(req: Request) {
     link: link || null,
     photo: photo || null,
     tags: tagsArray,
-    is_approved: false, // 管理者が承認するまで非公開
+    is_approved: true,
   })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, message: '承認待ちとして登録しました' })
+  return NextResponse.json({ success: true, message: '登録しました' })
 }

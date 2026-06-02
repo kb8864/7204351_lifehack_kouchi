@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
 import { getSession } from '@/lib/auth'
-import { getLifehacksByCategory, searchLifehacks } from '@/lib/data'
+import { getLifehacksByCategory, searchLifehacks, getSupabaseLifehacks } from '@/lib/data'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 import CategoryFilter from '@/components/CategoryFilter'
@@ -32,13 +32,29 @@ async function getLifehacks(
   userId: string | null
 ): Promise<Lifehack[]> {
   // JSONから取得してフィルタリング
-  let lifehacks = query
+  let jsonLifehacks = query
     ? searchLifehacks(query, category)
     : getLifehacksByCategory(category)
 
   if (tag) {
-    lifehacks = lifehacks.filter((lh) => lh.tags.includes(tag))
+    jsonLifehacks = jsonLifehacks.filter((lh) => lh.tags.includes(tag))
   }
+
+  // Supabaseからフォーム投稿データを取得してマージ
+  let supabaseLifehacks = await getSupabaseLifehacks(category)
+  if (tag) {
+    supabaseLifehacks = supabaseLifehacks.filter((lh) => lh.tags.includes(tag))
+  }
+  if (query) {
+    const q = query.toLowerCase()
+    supabaseLifehacks = supabaseLifehacks.filter(
+      (lh) =>
+        lh.description.toLowerCase().includes(q) ||
+        (lh.title?.toLowerCase().includes(q))
+    )
+  }
+
+  let lifehacks = [...jsonLifehacks, ...supabaseLifehacks]
 
   // Supabaseからお気に入り情報をオーバーレイ（失敗しても続行）
   try {

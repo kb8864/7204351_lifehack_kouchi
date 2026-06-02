@@ -15,6 +15,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 import type { Category, Lifehack } from '@/types'
 
+// SupabaseのIDとJSONのID（1-76）が衝突しないようオフセットを加算
+export const SUPABASE_ID_OFFSET = 10000
+
 const CATEGORY_ORDER: Category[] = ['food', 'costume_make', 'other']
 
 type RawLifehack = {
@@ -95,6 +98,54 @@ export function searchLifehacks(query: string, category?: Category): Lifehack[] 
       lh.description.toLowerCase().includes(q) ||
       (lh.title?.toLowerCase().includes(q))
   )
+}
+
+/**
+ * Supabaseからカテゴリ別の承認済みライフハックを取得する。
+ * IDにSUPABASE_ID_OFFSETを加算してJSONデータとの衝突を回避する。
+ * Supabase未設定や失敗時は空配列を返す。
+ */
+export async function getSupabaseLifehacks(category: Category): Promise<Lifehack[]> {
+  try {
+    const { createServerClient } = await import('@/lib/supabase')
+    const supabase = createServerClient()
+    const { data, error } = await supabase
+      .from('lifehacks')
+      .select('*')
+      .eq('category', category)
+      .eq('is_approved', true)
+      .order('id', { ascending: true })
+
+    if (error || !data) return []
+
+    return data.map((row: {
+      id: number
+      title: string | null
+      description: string
+      author: string | null
+      link: string | null
+      photo: string | null
+      category: Category
+      tags: string[]
+      is_approved: boolean
+      created_at: string
+    }) => ({
+      id: row.id + SUPABASE_ID_OFFSET,
+      title: row.title,
+      description: row.description,
+      author: row.author,
+      link: row.link,
+      photo: row.photo,
+      category: row.category,
+      tags: row.tags ?? [],
+      is_approved: true,
+      created_at: row.created_at,
+      favorite_count: 0,
+      is_favorited: false,
+    }))
+  } catch {
+    return []
+  }
 }
 
 export function getCategoryCounts(): Record<Category, number> {
