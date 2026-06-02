@@ -47,7 +47,7 @@ export default async function RankingPage() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div className="text-center">
         <div className="text-4xl mb-2">🏆</div>
-        <h1 className="text-xl font-bold text-[#1C1C1E]">今週のランキング</h1>
+        <h1 className="text-xl font-bold text-[#1C1C1E]"> アクセス数の多いライフハック</h1>
         <p className="text-sm text-[#8E8E93] mt-1">過去7日間の閲覧数ランキング</p>
       </div>
 

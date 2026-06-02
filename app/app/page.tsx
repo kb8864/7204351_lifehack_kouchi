@@ -96,7 +96,7 @@ export default async function HomePage() {
       {rankingLifehacks.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-[#1C1C1E]">🏆 今週のランキング</h3>
+            <h3 className="font-bold text-[#1C1C1E]">🏆 アクセス数の多いライフハック</h3>
             <Link href="/ranking" className="text-sm text-[#E85A2C] font-medium">
               もっと見る →
             </Link>
