@@ -148,6 +148,50 @@ export async function getSupabaseLifehacks(category: Category): Promise<Lifehack
   }
 }
 
+/**
+ * JSON ID(1-76) と Supabase表示ID(10001+) を両方検索する。
+ * ランキング・お気に入りなど複数ページで共通利用する。
+ */
+export async function getLifehackByDisplayId(id: number): Promise<Lifehack | null> {
+  const json = getLifehackById(id)
+  if (json) return json
+  if (id <= SUPABASE_ID_OFFSET) return null
+
+  try {
+    const { createServerClient } = await import('@/lib/supabase')
+    const supabase = createServerClient()
+    const { data } = await supabase
+      .from('lifehacks')
+      .select('*')
+      .eq('id', id - SUPABASE_ID_OFFSET)
+      .eq('is_approved', true)
+      .maybeSingle()
+    if (!data) return null
+    return {
+      id,
+      title: data.title,
+      description: data.description,
+      author: data.author,
+      link: data.link,
+      photo: data.photo,
+      category: data.category,
+      tags: data.tags ?? [],
+      is_approved: true,
+      created_at: data.created_at,
+      favorite_count: 0,
+      is_favorited: false,
+    }
+  } catch {
+    return null
+  }
+}
+
+/** 全カテゴリのSupabaseライフハックを並列取得 */
+export async function getAllSupabaseLifehacks(): Promise<Lifehack[]> {
+  const results = await Promise.all(CATEGORY_ORDER.map(getSupabaseLifehacks))
+  return results.flat()
+}
+
 export function getCategoryCounts(): Record<Category, number> {
   const all = getAllLifehacks()
   const counts: Record<Category, number> = { food: 0, costume_make: 0, other: 0 }

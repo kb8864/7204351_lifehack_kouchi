@@ -1,9 +1,9 @@
-export const revalidate = 3600
+export const revalidate = 60
 
 import Link from 'next/link'
 import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
-import { getCategoryCounts as getJsonCounts, getAllLifehacks, getLifehackById } from '@/lib/data'
+import { getCategoryCounts as getJsonCounts, getAllLifehacks, getLifehackByDisplayId } from '@/lib/data'
 import { CATEGORIES } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import HomeSearch from '@/components/HomeSearch'
@@ -18,9 +18,9 @@ async function getWeeklyRanking(): Promise<Lifehack[]> {
 
     if (!ranking || ranking.length === 0) return []
 
-    const lifehacks = ranking
-      .map((r: { lifehack_id: number }) => getLifehackById(r.lifehack_id))
-      .filter((lh): lh is Lifehack => lh !== null)
+    const lifehacks = (
+      await Promise.all(ranking.map((r: { lifehack_id: number }) => getLifehackByDisplayId(r.lifehack_id)))
+    ).filter((lh): lh is Lifehack => lh !== null)
 
     return lifehacks
   } catch {
@@ -53,11 +53,11 @@ export default async function HomePage() {
       {/* ヒーロー */}
       <div className="text-center py-4">
         <p className="text-[#8E8E93] text-sm">
-          今年最高の夏を過ごすあなたへ
+          今年最高に楽しい夏を過ごすあなたへ
         </p>
 
         <h2 className="text-2xl font-bold text-[#1C1C1E] mb-2">
-          七福　夏のライフハック集
+          🍉夏のライフハック集🌻
         </h2>
       </div>
 
@@ -93,14 +93,16 @@ export default async function HomePage() {
       </section>
 
       {/* 週間ランキング */}
-      {rankingLifehacks.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-[#1C1C1E]">🏆 アクセス数の多いライフハック</h3>
-            <Link href="/ranking" className="text-sm text-[#E85A2C] font-medium">
-              もっと見る →
-            </Link>
-          </div>
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold text-[#1C1C1E]">🏆 アクセス数の多いライフハック</h3>
+          <Link href="/ranking" className="text-sm text-[#E85A2C] font-medium">
+            もっと見る →
+          </Link>
+        </div>
+        {rankingLifehacks.length === 0 ? (
+          <p className="text-sm text-[#8E8E93] text-center py-4">まだデータがありません</p>
+        ) : (
           <div className="space-y-2">
             {rankingLifehacks.map((lh, i) => (
               <Link
@@ -122,8 +124,8 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
     </div>
   )
 }

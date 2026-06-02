@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
-import { getLifehackById } from '@/lib/data'
+import { getLifehackByDisplayId } from '@/lib/data'
 import type { Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 
@@ -17,8 +17,9 @@ export default async function FavoritesPage() {
 
   const ids = favs?.map((f) => f.lifehack_id) ?? []
 
-  const lifehacks: Lifehack[] = ids
-    .map((id) => getLifehackById(id))
+  const lifehacks: Lifehack[] = (
+    await Promise.all(ids.map((id) => getLifehackByDisplayId(id)))
+  )
     .filter((lh): lh is Lifehack => lh !== null)
     .map((lh) => ({ ...lh, is_favorited: true }))
 

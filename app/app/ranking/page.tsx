@@ -2,7 +2,7 @@ export const revalidate = 600
 
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
-import { getLifehackById } from '@/lib/data'
+import { getLifehackByDisplayId } from '@/lib/data'
 import { CATEGORIES } from '@/lib/constants'
 import type { Lifehack } from '@/types'
 
@@ -21,12 +21,13 @@ async function getWeeklyRanking(): Promise<{ lifehack: Lifehack; viewCount: numb
 
     if (!ranking || ranking.length === 0) return []
 
-    return (ranking as RankingRow[])
-      .map((r) => {
-        const lifehack = getLifehackById(r.lifehack_id)
+    const items = await Promise.all(
+      (ranking as RankingRow[]).map(async (r) => {
+        const lifehack = await getLifehackByDisplayId(r.lifehack_id)
         return lifehack ? { lifehack, viewCount: r.view_count } : null
       })
-      .filter((item): item is { lifehack: Lifehack; viewCount: number } => item !== null)
+    )
+    return items.filter((item): item is { lifehack: Lifehack; viewCount: number } => item !== null)
   } catch {
     return []
   }

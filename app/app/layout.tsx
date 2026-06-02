@@ -5,7 +5,7 @@ import BottomNav from '@/components/BottomNav'
 import { getSession } from '@/lib/auth'
 
 export const metadata: Metadata = {
-  title: '七福ライフハック | 七福よさこい連祝禧',
+  title: '七福よさこい連祝禧',
   description: '七福よさこい連祝禧の夏のライフハックをまとめて検索できるアプリです',
 }
 

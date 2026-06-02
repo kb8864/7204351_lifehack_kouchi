@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { searchLifehacks } from '@/lib/data'
+import { searchLifehacks, getAllSupabaseLifehacks } from '@/lib/data'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
@@ -10,14 +10,30 @@ interface Props {
   searchParams: Promise<{ q?: string; category?: string }>
 }
 
-function search(query: string, category: string): Lifehack[] {
+async function search(query: string, category: string): Promise<Lifehack[]> {
   if (!query && !category) return []
-  return searchLifehacks(query, (category as Category) || undefined)
+  const jsonResults = searchLifehacks(query, (category as Category) || undefined)
+
+  // Supabaseデータも検索対象に含める
+  const supabaseAll = await getAllSupabaseLifehacks()
+  const q = query.toLowerCase()
+  const cat = category as Category | undefined
+  const supabaseFiltered = supabaseAll.filter((lh) => {
+    if (cat && lh.category !== cat) return false
+    if (!query) return true
+    return (
+      lh.description.toLowerCase().includes(q) ||
+      lh.title?.toLowerCase().includes(q) ||
+      lh.tags.some((t) => t.toLowerCase().includes(q))
+    )
+  })
+
+  return [...jsonResults, ...supabaseFiltered]
 }
 
 export default async function SearchPage({ searchParams }: Props) {
   const { q = '', category = '' } = await searchParams
-  const results = search(q, category)
+  const results = await search(q, category)
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
