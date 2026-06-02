@@ -6,9 +6,10 @@ import { usePathname } from 'next/navigation'
 const NAV_ITEMS = [
   { href: '/', icon: '🏠', label: 'ホーム' },
   { href: '/search', icon: '🔍', label: '検索' },
-  { href: '/ranking', icon: '🏆', label: 'ランキング' },
   { href: '/favorites', icon: '❤️', label: 'お気に入り' },
 ]
+
+const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeTKTYVSlMzWkB-OCenbM2ehUEOHBc5Zvirw_mUq6czxI8AMA/viewform?usp=dialog'
 
 export default function BottomNav() {
   const pathname = usePathname()
@@ -32,6 +33,17 @@ export default function BottomNav() {
             </li>
           )
         })}
+        <li className="flex-1">
+          <a
+            href={FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center py-2 gap-0.5 text-[#E85A2C]"
+          >
+            <span className="text-xl leading-none">✏️</span>
+            <span className="text-[10px] font-medium">ライフハック追加</span>
+          </a>
+        </li>
       </ul>
     </nav>
   )
