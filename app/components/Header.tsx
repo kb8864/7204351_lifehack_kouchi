@@ -34,14 +34,6 @@ export default function Header({ session }: HeaderProps) {
               <span className="text-sm text-[#1C1C1E] hidden sm:block max-w-[120px] truncate">
                 {session.displayName}
               </span>
-                  {/* <Link
-                href="/favorites"
-                className="flex items-center gap-1 text-sm text-[#8E8E93] hover:text-red-500 transition-colors px-1"
-                title="お気に入り"
-              >
-                <span className="text-base">❤️</span>
-                <span className="text-xs font-medium hidden sm:inline">お気に入り</span>
-              </Link> */}
               {session.isAdmin && (
                 <Link
                   href="/admin"
