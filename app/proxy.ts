@@ -20,6 +20,21 @@ export async function proxy(request: NextRequest) {
 
   if (!isProtected && !isAdmin) return NextResponse.next()
 
+  // 管理者ルート: admin_session Cookie で検証
+  if (isAdmin) {
+    const adminToken = request.cookies.get('admin_session')?.value
+    if (adminToken) {
+      try {
+        await jwtVerify(adminToken, getSecret())
+        return NextResponse.next()
+      } catch {
+        // 無効トークン → ログインへ
+      }
+    }
+    return NextResponse.redirect(new URL('/admin/login', request.url))
+  }
+
+  // 一般保護ルート（/favorites）: LINE JWT で検証
   const token = request.cookies.get(COOKIE_NAME)?.value
 
   if (!token) {
@@ -29,12 +44,7 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    const { payload } = await jwtVerify(token, getSecret())
-
-    if (isAdmin && !payload.isAdmin) {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-
+    await jwtVerify(token, getSecret())
     return NextResponse.next()
   } catch {
     const loginUrl = new URL('/api/auth/line', request.url)
