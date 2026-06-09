@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getSession } from '@/lib/auth'
+import { getAdminSession } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
@@ -12,8 +12,8 @@ interface Props {
 
 export default async function AdminListPage({ params }: Props) {
   const { category: categorySlug } = await params
-  const session = await getSession()
-  if (!session?.isAdmin) redirect('/')
+  const isAdmin = await getAdminSession()
+  if (!isAdmin) redirect('/admin/login')
   if (!CATEGORY_SLUGS.includes(categorySlug as Category)) notFound()
 
   const category = categorySlug as Category
@@ -24,6 +24,7 @@ export default async function AdminListPage({ params }: Props) {
     .from('lifehacks')
     .select('*')
     .eq('category', category)
+    .eq('is_deleted', false)
     .order('id', { ascending: true })
 
   const lifehacks = (data as Lifehack[]) ?? []

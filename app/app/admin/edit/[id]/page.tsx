@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
-import { getSession } from '@/lib/auth'
+import { getAdminSession } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
 import type { Lifehack } from '@/types'
 import EditForm from './EditForm'
@@ -13,8 +13,8 @@ export default async function EditPage({ params }: Props) {
   const lifehackId = parseInt(id, 10)
   if (isNaN(lifehackId)) notFound()
 
-  const session = await getSession()
-  if (!session?.isAdmin) redirect('/')
+  const isAdmin = await getAdminSession()
+  if (!isAdmin) redirect('/admin/login')
 
   const supabase = createServerClient()
   const { data } = await supabase

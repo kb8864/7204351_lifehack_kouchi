@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSessionFromRequest } from '@/lib/auth'
+import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
 
 interface Params {
@@ -8,8 +8,8 @@ interface Params {
 
 // 管理者: ライフハック更新 (PUT)
 export async function PUT(req: Request, { params }: Params) {
-  const session = await getSessionFromRequest(req)
-  if (!session?.isAdmin) {
+  const isAdmin = await getAdminSessionFromRequest(req)
+  if (!isAdmin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -35,42 +35,60 @@ export async function PUT(req: Request, { params }: Params) {
   return NextResponse.json({ success: true })
 }
 
-// 管理者: 承認/削除 (PATCH)
+// 管理者: 承認/ソフトデリート (PATCH)
 export async function PATCH(req: Request, { params }: Params) {
-  const session = await getSessionFromRequest(req)
-  if (!session?.isAdmin) {
+  const isAdmin = await getAdminSessionFromRequest(req)
+  if (!isAdmin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const { id } = await params
-  const { is_approved } = await req.json()
-
+  const body = await req.json()
   const supabase = createServerClient()
 
-  if (is_approved === null) {
-    // 削除
-    await supabase.from('lifehacks').delete().eq('id', parseInt(id, 10))
+  // is_approved: null → ソフトデリート
+  if (body.is_approved === null) {
+    const { error } = await supabase
+      .from('lifehacks')
+      .update({ is_deleted: true })
+      .eq('id', parseInt(id, 10))
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ deleted: true })
+  }
+
+  // restore: true → 削除復活
+  if (body.restore === true) {
+    const { error } = await supabase
+      .from('lifehacks')
+      .update({ is_deleted: false })
+      .eq('id', parseInt(id, 10))
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ restored: true })
   }
 
   const { error } = await supabase
     .from('lifehacks')
-    .update({ is_approved })
+    .update({ is_approved: body.is_approved })
     .eq('id', parseInt(id, 10))
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
 }
 
-// 管理者: 削除 (DELETE)
+// 管理者: ソフトデリート (DELETE)
 export async function DELETE(req: Request, { params }: Params) {
-  const session = await getSessionFromRequest(req)
-  if (!session?.isAdmin) {
+  const isAdmin = await getAdminSessionFromRequest(req)
+  if (!isAdmin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const { id } = await params
   const supabase = createServerClient()
-  await supabase.from('lifehacks').delete().eq('id', parseInt(id, 10))
+  const { error } = await supabase
+    .from('lifehacks')
+    .update({ is_deleted: true })
+    .eq('id', parseInt(id, 10))
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
 }

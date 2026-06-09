@@ -1,27 +1,33 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { getSession } from '@/lib/auth'
+import { getAdminSession } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES } from '@/lib/constants'
 import type { Category } from '@/types'
 
 export default async function AdminPage() {
-  const session = await getSession()
-  if (!session?.isAdmin) redirect('/')
+  const isAdmin = await getAdminSession()
+  if (!isAdmin) redirect('/admin/login')
 
   const supabase = createServerClient()
 
-  const [{ count: totalCount }, { count: pendingCount }, { data: categoryData }] =
+  const [{ count: totalCount }, { count: pendingCount }, { count: deletedCount }, { data: categoryData }] =
     await Promise.all([
-      supabase.from('lifehacks').select('*', { count: 'exact', head: true }),
+      supabase.from('lifehacks').select('*', { count: 'exact', head: true }).eq('is_deleted', false),
       supabase
         .from('lifehacks')
         .select('*', { count: 'exact', head: true })
-        .eq('is_approved', false),
+        .eq('is_approved', false)
+        .eq('is_deleted', false),
+      supabase
+        .from('lifehacks')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_deleted', true),
       supabase
         .from('lifehacks')
         .select('category')
-        .eq('is_approved', true),
+        .eq('is_approved', true)
+        .eq('is_deleted', false),
     ])
 
   const counts: Record<string, number> = {}
@@ -45,6 +51,10 @@ export default async function AdminPage() {
         <div className={`rounded-2xl p-4 border-2 shadow-sm ${(pendingCount ?? 0) > 0 ? 'bg-orange-50 border-orange-300' : 'bg-white border-[#E5E5EA]'}`}>
           <div className="text-2xl font-bold text-orange-500">{pendingCount ?? 0}</div>
           <div className="text-xs text-[#8E8E93] mt-1">承認待ち</div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 border border-[#E5E5EA] shadow-sm">
+          <div className="text-2xl font-bold text-gray-400">{deletedCount ?? 0}</div>
+          <div className="text-xs text-[#8E8E93] mt-1">削除済み</div>
         </div>
         {(Object.entries(CATEGORIES) as [Category, (typeof CATEGORIES)[Category]][]).map(
           ([slug, info]) => (
@@ -76,6 +86,18 @@ export default async function AdminPage() {
               </div>
             </div>
             <span className="ml-auto text-[#E85A2C]">→</span>
+          </Link>
+
+          <Link
+            href="/admin/deleted"
+            className="flex items-center gap-3 p-4 rounded-2xl border border-[#E5E5EA] bg-white hover:shadow-sm transition-shadow"
+          >
+            <span className="text-2xl">🗑️</span>
+            <div>
+              <div className="font-semibold text-[#1C1C1E]">削除済みライフハック</div>
+              <div className="text-sm text-[#8E8E93]">{deletedCount ?? 0}件を復活させる</div>
+            </div>
+            <span className="ml-auto text-[#8E8E93]">→</span>
           </Link>
 
           {(Object.entries(CATEGORIES) as [Category, (typeof CATEGORIES)[Category]][]).map(
