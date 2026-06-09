@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Lifehack } from '@/types'
 
-export default function AdminLifehackRow({ lifehack }: { lifehack: Lifehack }) {
+export default function AdminLifehackRow({ lifehack, canEdit = true }: { lifehack: Lifehack; canEdit?: boolean }) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
 
@@ -27,12 +27,14 @@ export default function AdminLifehackRow({ lifehack }: { lifehack: Lifehack }) {
         </p>
       </div>
       <div className="flex gap-2 shrink-0">
-        <Link
-          href={`/admin/edit/${lifehack.id}`}
-          className="text-xs bg-[#F7F7F5] border border-[#E5E5EA] text-[#1C1C1E] px-2 py-1 rounded-lg hover:bg-[#E5E5EA] transition-colors"
-        >
-          編集
-        </Link>
+        {canEdit && (
+          <Link
+            href={`/admin/edit/${lifehack.id}`}
+            className="text-xs bg-[#F7F7F5] border border-[#E5E5EA] text-[#1C1C1E] px-2 py-1 rounded-lg hover:bg-[#E5E5EA] transition-colors"
+          >
+            編集
+          </Link>
+        )}
         <button
           onClick={handleDelete}
           disabled={deleting}

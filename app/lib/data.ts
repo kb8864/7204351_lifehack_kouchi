@@ -114,6 +114,7 @@ export async function getSupabaseLifehacks(category: Category): Promise<Lifehack
       .select('*')
       .eq('category', category)
       .eq('is_approved', true)
+      .eq('is_deleted', false)
       .order('id', { ascending: true })
 
     if (error || !data) return []
@@ -190,6 +191,18 @@ export async function getLifehackByDisplayId(id: number): Promise<Lifehack | nul
 export async function getAllSupabaseLifehacks(): Promise<Lifehack[]> {
   const results = await Promise.all(CATEGORY_ORDER.map(getSupabaseLifehacks))
   return results.flat()
+}
+
+/** hidden_json_ids テーブルから非表示JSONのIDセットを取得 */
+export async function getHiddenJsonIds(): Promise<Set<number>> {
+  try {
+    const { createServerClient } = await import('@/lib/supabase')
+    const supabase = createServerClient()
+    const { data } = await supabase.from('hidden_json_ids').select('id')
+    return new Set((data ?? []).map((row: { id: number }) => row.id))
+  } catch {
+    return new Set()
+  }
 }
 
 export function getCategoryCounts(): Record<Category, number> {

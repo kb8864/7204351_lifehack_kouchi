@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
 import { fetchOGPImage } from '@/lib/ogp'
-import { getLifehackById, SUPABASE_ID_OFFSET } from '@/lib/data'
+import { getLifehackById, SUPABASE_ID_OFFSET, getHiddenJsonIds } from '@/lib/data'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
 import FavoriteButton from '@/components/FavoriteButton'
 
@@ -26,8 +26,14 @@ export default async function LifehackDetailPage({ params }: Props) {
   const lifehackId = parseInt(id, 10)
   if (isNaN(lifehackId)) notFound()
 
-  // id > SUPABASE_ID_OFFSET の場合はSupabaseから取得
+  // JSON IDの場合、非表示チェック
   let lifehack = getLifehackById(lifehackId)
+  if (lifehack) {
+    const hiddenIds = await getHiddenJsonIds()
+    if (hiddenIds.has(lifehackId)) notFound()
+  }
+
+  // id > SUPABASE_ID_OFFSET の場合はSupabaseから取得
   if (!lifehack && lifehackId > SUPABASE_ID_OFFSET) {
     try {
       const { createServerClient } = await import('@/lib/supabase')

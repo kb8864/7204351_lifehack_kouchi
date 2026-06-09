@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
+import { SUPABASE_ID_OFFSET } from '@/lib/data'
 
 interface Params {
   params: Promise<{ id: string }>
 }
 
-// 管理者: ライフハック更新 (PUT)
+// 管理者: ライフハック更新 (PUT) — Supabase ライフハックのみ対象
 export async function PUT(req: Request, { params }: Params) {
   const isAdmin = await getAdminSessionFromRequest(req)
   if (!isAdmin) {
@@ -14,6 +15,7 @@ export async function PUT(req: Request, { params }: Params) {
   }
 
   const { id } = await params
+  const numId = parseInt(id, 10)
   const body = await req.json()
 
   const supabase = createServerClient()
@@ -29,13 +31,13 @@ export async function PUT(req: Request, { params }: Params) {
       tags: body.tags ?? [],
       is_approved: body.is_approved ?? true,
     })
-    .eq('id', parseInt(id, 10))
+    .eq('id', numId - SUPABASE_ID_OFFSET)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
 }
 
-// 管理者: 承認/ソフトデリート (PATCH)
+// 管理者: 承認/ソフトデリート/復活 (PATCH)
 export async function PATCH(req: Request, { params }: Params) {
   const isAdmin = await getAdminSessionFromRequest(req)
   if (!isAdmin) {
@@ -43,35 +45,50 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 
   const { id } = await params
+  const numId = parseInt(id, 10)
   const body = await req.json()
   const supabase = createServerClient()
+  const isJsonId = numId < SUPABASE_ID_OFFSET
 
-  // is_approved: null → ソフトデリート
-  if (body.is_approved === null) {
-    const { error } = await supabase
-      .from('lifehacks')
-      .update({ is_deleted: true })
-      .eq('id', parseInt(id, 10))
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ deleted: true })
-  }
-
-  // restore: true → 削除復活
+  // 復活
   if (body.restore === true) {
-    const { error } = await supabase
-      .from('lifehacks')
-      .update({ is_deleted: false })
-      .eq('id', parseInt(id, 10))
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (isJsonId) {
+      // JSON: hidden_json_ids から削除
+      const { error } = await supabase.from('hidden_json_ids').delete().eq('id', numId)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    } else {
+      // Supabase: is_deleted = false
+      const { error } = await supabase
+        .from('lifehacks')
+        .update({ is_deleted: false })
+        .eq('id', numId - SUPABASE_ID_OFFSET)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    }
     return NextResponse.json({ restored: true })
   }
 
-  const { error } = await supabase
-    .from('lifehacks')
-    .update({ is_approved: body.is_approved })
-    .eq('id', parseInt(id, 10))
+  // ソフトデリート (is_approved: null)
+  if (body.is_approved === null) {
+    if (isJsonId) {
+      await supabase.from('hidden_json_ids').upsert({ id: numId })
+    } else {
+      await supabase
+        .from('lifehacks')
+        .update({ is_deleted: true })
+        .eq('id', numId - SUPABASE_ID_OFFSET)
+    }
+    return NextResponse.json({ deleted: true })
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // 承認状態変更 (Supabase のみ)
+  if (!isJsonId) {
+    const { error } = await supabase
+      .from('lifehacks')
+      .update({ is_approved: body.is_approved })
+      .eq('id', numId - SUPABASE_ID_OFFSET)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
   return NextResponse.json({ success: true })
 }
 
@@ -83,12 +100,21 @@ export async function DELETE(req: Request, { params }: Params) {
   }
 
   const { id } = await params
+  const numId = parseInt(id, 10)
   const supabase = createServerClient()
-  const { error } = await supabase
-    .from('lifehacks')
-    .update({ is_deleted: true })
-    .eq('id', parseInt(id, 10))
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (numId < SUPABASE_ID_OFFSET) {
+    // JSON ライフハック: hidden_json_ids に追加
+    const { error } = await supabase.from('hidden_json_ids').upsert({ id: numId })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  } else {
+    // Supabase ライフハック: is_deleted = true
+    const { error } = await supabase
+      .from('lifehacks')
+      .update({ is_deleted: true })
+      .eq('id', numId - SUPABASE_ID_OFFSET)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
   return NextResponse.json({ success: true })
 }

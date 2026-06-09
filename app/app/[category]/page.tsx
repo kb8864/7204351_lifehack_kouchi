@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
 import { getSession } from '@/lib/auth'
-import { getLifehacksByCategory, searchLifehacks, getSupabaseLifehacks } from '@/lib/data'
+import { getLifehacksByCategory, searchLifehacks, getSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 import CategoryFilter from '@/components/CategoryFilter'
@@ -33,10 +33,13 @@ async function getLifehacks(
   query: string,
   userId: string | null
 ): Promise<Lifehack[]> {
-  // JSONから取得してフィルタリング
-  let jsonLifehacks = query
+  const hiddenIds = await getHiddenJsonIds()
+
+  // JSONから取得してフィルタリング（非表示を除外）
+  let jsonLifehacks = (query
     ? searchLifehacks(query, category)
     : getLifehacksByCategory(category)
+  ).filter((lh) => !hiddenIds.has(lh.id))
 
   if (tag) {
     jsonLifehacks = jsonLifehacks.filter((lh) => lh.tags.includes(tag))

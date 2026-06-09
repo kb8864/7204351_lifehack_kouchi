@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
+import { getLifehackById, SUPABASE_ID_OFFSET } from '@/lib/data'
 import type { Lifehack } from '@/types'
 import RestoreButton from './RestoreButton'
 
@@ -10,13 +11,35 @@ export default async function DeletedPage() {
   if (!isAdmin) redirect('/admin/login')
 
   const supabase = createServerClient()
-  const { data } = await supabase
-    .from('lifehacks')
-    .select('*')
-    .eq('is_deleted', true)
-    .order('id', { ascending: false })
+  const [{ data: supabaseDeleted }, { data: hiddenJsonData }] = await Promise.all([
+    supabase
+      .from('lifehacks')
+      .select('*')
+      .eq('is_deleted', true)
+      .order('id', { ascending: false }),
+    supabase.from('hidden_json_ids').select('id'),
+  ])
 
-  const deleted = (data as Lifehack[]) ?? []
+  // Supabase 削除済み（オフセットID付与）
+  const supabaseItems: Lifehack[] = (supabaseDeleted ?? []).map((row) => ({
+    id: row.id + SUPABASE_ID_OFFSET,
+    title: row.title,
+    description: row.description,
+    author: row.author,
+    link: row.link,
+    photo: row.photo,
+    category: row.category,
+    tags: row.tags ?? [],
+    is_approved: row.is_approved,
+    created_at: row.created_at,
+  }))
+
+  // JSON 非表示（hidden_json_ids から元データを復元）
+  const jsonItems: Lifehack[] = (hiddenJsonData ?? [])
+    .map((row) => getLifehackById(row.id))
+    .filter((lh): lh is Lifehack => lh !== null)
+
+  const deleted = [...jsonItems, ...supabaseItems]
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
@@ -30,7 +53,7 @@ export default async function DeletedPage() {
         <span className="text-3xl">🗑️</span>
         <div>
           <h1 className="text-xl font-bold text-[#1C1C1E]">削除済みライフハック</h1>
-          <p className="text-sm text-[#8E8E93]">{deleted.length}件</p>
+          <p className="text-sm text-[#8E8E93]">{deleted.length}件（JSON: {jsonItems.length} / フォーム投稿: {supabaseItems.length}）</p>
         </div>
       </div>
 
@@ -53,7 +76,7 @@ export default async function DeletedPage() {
                   </p>
                 </div>
                 <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full shrink-0">
-                  削除済み
+                  {lh.id < SUPABASE_ID_OFFSET ? 'JSON' : 'フォーム投稿'}
                 </span>
               </div>
 

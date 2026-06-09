@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { searchLifehacks, getAllSupabaseLifehacks } from '@/lib/data'
+import { searchLifehacks, getAllSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
@@ -12,10 +12,12 @@ interface Props {
 
 async function search(query: string, category: string): Promise<Lifehack[]> {
   if (!query && !category) return []
+  const [hiddenIds, supabaseAll] = await Promise.all([
+    getHiddenJsonIds(),
+    getAllSupabaseLifehacks(),
+  ])
   const jsonResults = searchLifehacks(query, (category as Category) || undefined)
-
-  // Supabaseデータも検索対象に含める
-  const supabaseAll = await getAllSupabaseLifehacks()
+    .filter((lh) => !hiddenIds.has(lh.id))
   const q = query.toLowerCase()
   const cat = category as Category | undefined
   const supabaseFiltered = supabaseAll.filter((lh) => {
