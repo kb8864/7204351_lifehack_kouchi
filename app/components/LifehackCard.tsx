@@ -19,7 +19,7 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
   return (
     <Link
       href={`/lifehack/${lifehack.id}`}
-      className="block bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-[#E5E5EA]"
+      className="block bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 active:scale-[0.98] active:shadow-sm transition-all duration-200 overflow-hidden border border-[#E5E5EA]"
     >
       {/* サムネイル */}
       <div className="relative w-full h-36 bg-[#F7F7F5] flex items-center justify-center overflow-hidden">

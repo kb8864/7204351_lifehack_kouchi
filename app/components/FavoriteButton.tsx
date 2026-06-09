@@ -48,11 +48,11 @@ export default function FavoriteButton({
     <button
       onClick={handleClick}
       disabled={loading}
-      className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all ${
+      className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 active:scale-90 ${
         favorited
           ? 'bg-red-50 text-red-500 border border-red-200'
           : 'bg-[#F7F7F5] text-[#8E8E93] border border-[#E5E5EA] hover:border-red-200 hover:text-red-400'
-      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      } ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-95'}`}
       aria-label={favorited ? 'お気に入りから削除' : 'お気に入りに追加'}
     >
       <span className="text-base">{favorited ? '❤️' : '🤍'}</span>

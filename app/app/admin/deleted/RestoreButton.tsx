@@ -30,7 +30,7 @@ export default function RestoreButton({ lifehackId }: Props) {
       <button
         onClick={handleRestore}
         disabled={loading}
-        className="w-full bg-green-500 text-white text-sm font-semibold py-2 rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
+        className="w-full bg-green-500 text-white text-sm font-semibold py-2 rounded-xl hover:bg-green-600 active:scale-95 transition-all duration-150 disabled:opacity-50"
       >
         復活させる
       </button>

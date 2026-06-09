@@ -38,7 +38,7 @@ export default function AdminLifehackRow({ lifehack, canEdit = true }: { lifehac
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className="text-xs bg-red-50 border border-red-200 text-red-500 px-2 py-1 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+          className="text-xs bg-red-50 border border-red-200 text-red-500 px-2 py-1 rounded-lg hover:bg-red-100 active:scale-90 transition-all duration-150 disabled:opacity-50"
         >
           削除
         </button>

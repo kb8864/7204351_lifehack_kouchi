@@ -23,8 +23,8 @@ export default function BottomNav() {
             <li key={href} className="flex-1">
               <Link
                 href={href}
-                className={`flex flex-col items-center justify-center py-2 gap-0.5 transition-colors ${
-                  isActive ? 'text-[#E85A2C]' : 'text-[#8E8E93]'
+                className={`flex flex-col items-center justify-center py-2 gap-0.5 transition-all duration-150 active:scale-90 ${
+                  isActive ? 'text-[#E85A2C]' : 'text-[#8E8E93] hover:text-[#E85A2C]'
                 }`}
               >
                 <span className="text-xl leading-none">{icon}</span>
@@ -38,7 +38,7 @@ export default function BottomNav() {
             href={FORM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center py-2 gap-0.5 text-[#E85A2C]"
+            className="flex flex-col items-center justify-center py-2 gap-0.5 text-[#E85A2C] transition-all duration-150 active:scale-90"
           >
             <span className="text-xl leading-none">✏️</span>
             <span className="text-[10px] font-medium">ライフハック追加</span>

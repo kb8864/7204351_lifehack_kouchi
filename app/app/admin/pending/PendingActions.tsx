@@ -30,14 +30,14 @@ export default function PendingActions({ lifehackId }: Props) {
       <button
         onClick={() => handleAction('approve')}
         disabled={loading}
-        className="flex-1 bg-green-500 text-white text-sm font-semibold py-2 rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
+        className="flex-1 bg-green-500 text-white text-sm font-semibold py-2 rounded-xl hover:bg-green-600 active:scale-95 transition-all duration-150 disabled:opacity-50"
       >
         ✅ 承認する
       </button>
       <button
         onClick={() => handleAction('reject')}
         disabled={loading}
-        className="flex-1 bg-red-100 text-red-500 text-sm font-semibold py-2 rounded-xl hover:bg-red-200 transition-colors disabled:opacity-50"
+        className="flex-1 bg-red-100 text-red-500 text-sm font-semibold py-2 rounded-xl hover:bg-red-200 active:scale-95 transition-all duration-150 disabled:opacity-50"
       >
         🗑️ 削除する
       </button>
