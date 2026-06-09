@@ -7,14 +7,16 @@ const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET!)
 
 // ログインが必要なルート
 const PROTECTED_ROUTES = ['/favorites']
-// 管理者のみアクセス可能なルート
+// 管理者のみアクセス可能なルート（/admin/login は除外）
 const ADMIN_ROUTES = ['/admin']
+const ADMIN_PUBLIC_ROUTES = ['/admin/login']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r))
-  const isAdmin = ADMIN_ROUTES.some((r) => pathname.startsWith(r))
+  const isAdminPublic = ADMIN_PUBLIC_ROUTES.some((r) => pathname.startsWith(r))
+  const isAdmin = !isAdminPublic && ADMIN_ROUTES.some((r) => pathname.startsWith(r))
 
   if (!isProtected && !isAdmin) return NextResponse.next()
 
