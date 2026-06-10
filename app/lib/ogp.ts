@@ -1,6 +1,29 @@
 import { unstable_cache } from 'next/cache'
 
+// Amazon・Rakutenはサーバーサイドからのスクレイピングをブロックするため
+// Microlink API 経由で取得する
+const NEED_PROXY = /amazon\.(co\.jp|com)|rakuten\.co\.jp/i
+
+async function fetchViaMicrolink(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://api.microlink.io/?url=${encodeURIComponent(url)}`,
+      { signal: AbortSignal.timeout(12000) }
+    )
+    if (!res.ok) return null
+    const json = await res.json() as { data?: { image?: { url?: string } } }
+    const img = json?.data?.image?.url ?? null
+    return img && img.startsWith('http') ? img : null
+  } catch {
+    return null
+  }
+}
+
 async function _fetchOgpImage(url: string): Promise<string | null> {
+  if (NEED_PROXY.test(url)) {
+    return fetchViaMicrolink(url)
+  }
+
   try {
     const res = await fetch(url, {
       headers: {
