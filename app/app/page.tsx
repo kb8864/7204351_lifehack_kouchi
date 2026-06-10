@@ -73,16 +73,22 @@ export default async function HomePage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-8">
-      {/* ヒーロー */}
+      {/* ヒーロー（祭り提灯） */}
       <div className="text-center py-6">
-        <p className="text-[#8E8E93] text-sm tracking-wide mb-2">
+        <div className="flex items-center justify-center gap-2 mb-3 text-2xl">
+          <span>🏮</span>
+          <span className="font-wa text-[var(--secondary)] text-sm font-semibold tracking-[0.3em]">七福よさこい連祝禧</span>
+          <span>🏮</span>
+        </div>
+        <p className="text-[var(--muted)] text-sm tracking-wide mb-2">
           今年最高に楽しい夏を過ごすあなたへ
         </p>
-        <h2 className="text-3xl font-black leading-tight mb-1"
-          style={{ background: 'linear-gradient(135deg, #E85A2C 0%, #FF8C42 50%, #FFB347 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+        <h2 className="font-wa text-3xl font-extrabold leading-tight mb-2 text-[var(--primary)]">
           夏のライフハック集
         </h2>
-        <p className="text-2xl">🍉🌻</p>
+        {/* 朱色の帯（のれん風アンダーライン） */}
+        <div className="noren-bar h-1 w-20 mx-auto rounded-full mb-2" />
+        <p className="text-2xl">🎐🍧🥁</p>
       </div>
 
       {/* インライン検索（画面遷移なし） */}
@@ -90,14 +96,14 @@ export default async function HomePage() {
 
       {/* カテゴリカード */}
       <section>
-        <h3 className="font-bold text-[#1C1C1E] mb-3 text-base">カテゴリから探す</h3>
+        <h3 className="font-wa font-bold text-[var(--foreground)] mb-3 text-base">🎴 カテゴリから探す</h3>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {(Object.entries(CATEGORIES) as [Category, (typeof CATEGORIES)[Category]][]).map(
             ([slug, info]) => (
               <Link
                 key={slug}
                 href={`/${slug}`}
-                className="bg-white rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 active:scale-[0.98] shrink-0 w-48 shadow-sm"
+                className="glass-card rounded-2xl overflow-hidden hover:-translate-y-1 transition-transform duration-200 active:scale-[0.98] shrink-0 w-48 shadow-sm"
               >
                 <div className="relative">
                   <Image
@@ -110,8 +116,8 @@ export default async function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
                 <div className="px-3 py-2.5">
-                  <div className={`font-bold text-sm ${info.color}`}>{info.icon} {info.label}</div>
-                  <div className="text-xs text-[#8E8E93] mt-0.5">{counts[slug]}件のハック</div>
+                  <div className={`font-wa font-bold text-sm ${info.color}`}>{info.icon} {info.label}</div>
+                  <div className="text-xs text-[var(--muted)] mt-0.5">{counts[slug]}件のハック</div>
                 </div>
               </Link>
             )
@@ -122,24 +128,23 @@ export default async function HomePage() {
       {/* 週間ランキング */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-[#1C1C1E] text-base">🏆 アクセス数の多いライフハック</h3>
-          <Link href="/ranking" className="text-sm font-medium"
-            style={{ color: '#E85A2C' }}>
+          <h3 className="font-wa font-bold text-[var(--foreground)] text-base">🏆 アクセス数の多いライフハック</h3>
+          <Link href="/ranking" className="text-sm font-medium text-[var(--primary)]">
             もっと見る →
           </Link>
         </div>
         {rankingLifehacks.length === 0 ? (
-          <p className="text-sm text-[#8E8E93] text-center py-4">まだデータがありません</p>
+          <p className="text-sm text-[var(--muted)] text-center py-4">まだデータがありません</p>
         ) : (
           <div className="space-y-2">
             {rankingLifehacks.map((lh, i) => (
               <Link
                 key={lh.id}
                 href={`/lifehack/${lh.id}`}
-                className="flex items-center gap-3 glass-card rounded-2xl p-3.5 hover:shadow-md transition-all duration-200 active:scale-[0.99]"
+                className="flex items-center gap-3 glass-card rounded-2xl p-3.5 transition-transform duration-200 active:scale-[0.99]"
               >
                 <span className="text-2xl w-8 text-center flex-shrink-0">{RANK_MEDALS[i] ?? i + 1}</span>
-                <span className="text-sm font-medium text-[#1C1C1E] flex-1 line-clamp-1">
+                <span className="text-sm font-medium text-[var(--foreground)] flex-1 line-clamp-1">
                   {lh.title || lh.description.slice(0, 30) + '…'}
                 </span>
                 <span className="text-base">{CATEGORIES[lh.category]?.icon}</span>

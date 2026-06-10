@@ -4,58 +4,59 @@ export const CATEGORIES: Record<Category, CategoryInfo> = {
   food: {
     label: '食事',
     icon: '🥢',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
+    color: 'text-red-700',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
     image: '/images/food.jpg',
   },
 costume_make: {
     label: '衣装・メイク',
     icon: '👘',
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-50',
-    borderColor: 'border-pink-200',
+    color: 'text-indigo-800',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-200',
     image: '/images/costume_make.jpg',
   },
   other: {
     label: 'その他',
     icon: '📦',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
+    color: 'text-amber-700',
+    bgColor: 'bg-amber-50',
+    borderColor: 'border-amber-200',
     image: '/images/other.jpg',
   },
 }
 
 export const CATEGORY_SLUGS = Object.keys(CATEGORIES) as Category[]
 
+// 和の伝統色を意識したタグ配色（朱・紺藍・金・抹茶・藤 などのトーン）
 export const TAG_COLORS: Record<string, string> = {
   // 食事
-  '熱中症対策': 'bg-red-500',
-  'ご飯': 'bg-orange-400',
-  '飲み物': 'bg-sky-400',
-  '疲労回復': 'bg-green-500',
+  '熱中症対策': 'bg-red-700',
+  'ご飯': 'bg-orange-600',
+  '飲み物': 'bg-sky-700',
+  '疲労回復': 'bg-emerald-700',
   // 体調管理
-  '朝の準備': 'bg-yellow-400',
-  'のど飴': 'bg-purple-400',
-  '演舞中': 'bg-indigo-400',
+  '朝の準備': 'bg-amber-600',
+  'のど飴': 'bg-purple-700',
+  '演舞中': 'bg-indigo-700',
   // 衣装・メイク
-  '雨対策': 'bg-blue-400',
-  '足袋': 'bg-stone-400',
-  '鳴子': 'bg-amber-500',
-  'メイク': 'bg-pink-400',
-  '髪型': 'bg-rose-400',
+  '雨対策': 'bg-blue-700',
+  '足袋': 'bg-stone-600',
+  '鳴子': 'bg-amber-700',
+  'メイク': 'bg-rose-600',
+  '髪型': 'bg-pink-700',
   // その他
-  '高知市情報': 'bg-teal-500',
-  'おすすめグッズ': 'bg-violet-400',
-  'バス': 'bg-slate-400',
-  '洗濯': 'bg-cyan-400',
-  '豆知識': 'bg-emerald-400',
-  '遅刻': 'bg-red-400',
-  'BBQ': 'bg-orange-500',
+  '高知市情報': 'bg-teal-700',
+  'おすすめグッズ': 'bg-violet-700',
+  'バス': 'bg-slate-600',
+  '洗濯': 'bg-cyan-700',
+  '豆知識': 'bg-green-700',
+  '遅刻': 'bg-red-600',
+  'BBQ': 'bg-orange-700',
 }
 
-export const DEFAULT_TAG_COLOR = 'bg-gray-400'
+export const DEFAULT_TAG_COLOR = 'bg-stone-500'
 
 export const COOKIE_NAME = 'shichifuku_session'
 export const SESSION_DURATION = 60 * 60 * 24 * 365 // 365 days in seconds

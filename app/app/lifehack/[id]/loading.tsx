@@ -8,7 +8,7 @@ export default function LifehackLoading() {
           <div className="sk h-4 w-3 rounded-full" />
           <div className="sk h-4 w-20 rounded-full" />
         </div>
-        <div className="bg-white rounded-2xl overflow-hidden border border-[#E5E5EA]">
+        <div className="bg-[var(--card)] rounded-2xl overflow-hidden border border-[var(--border)]">
           <div className="sk h-52" style={{ borderRadius: 0 }} />
           <div className="p-5 space-y-4">
             <div className="sk h-7 w-3/4 rounded-xl" />
@@ -18,13 +18,13 @@ export default function LifehackLoading() {
                 <div key={i} className="sk h-5 w-16 rounded-full" />
               ))}
             </div>
-            <div className="rounded-xl p-4 space-y-2 bg-gray-50">
+            <div className="rounded-xl p-4 space-y-2 bg-[var(--background)]">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className={`sk h-4 rounded-full ${i === 4 ? 'w-2/3' : 'w-full'}`} />
               ))}
             </div>
             <div className="sk h-11 rounded-xl" />
-            <div className="flex items-center pt-2 border-t border-gray-100">
+            <div className="flex items-center pt-2 border-t border-[var(--border)]">
               <div className="sk h-9 w-24 rounded-full" />
             </div>
           </div>

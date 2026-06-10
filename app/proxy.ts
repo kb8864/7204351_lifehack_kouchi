@@ -28,8 +28,9 @@ export async function proxy(request: NextRequest) {
   }
 
   // 全ページ共通：匿名UIDクッキーがなければ発行（5年有効）
+  // /api はルートハンドラ側で発行するため除外（二重発行で別uidになるのを防ぐ）
   const response = NextResponse.next()
-  if (!request.cookies.get('shichifuku_uid')?.value) {
+  if (!request.nextUrl.pathname.startsWith('/api') && !request.cookies.get('shichifuku_uid')?.value) {
     response.cookies.set('shichifuku_uid', crypto.randomUUID(), {
       maxAge: 60 * 60 * 24 * 365 * 5,
       sameSite: 'lax',

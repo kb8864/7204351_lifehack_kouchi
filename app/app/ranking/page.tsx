@@ -34,11 +34,11 @@ async function getWeeklyRanking(): Promise<{ lifehack: Lifehack; viewCount: numb
 }
 
 const RANK_STYLES = [
-  { medal: '🥇', bg: 'bg-yellow-50 border-yellow-200', numColor: 'text-yellow-500' },
-  { medal: '🥈', bg: 'bg-gray-50 border-gray-200', numColor: 'text-gray-400' },
-  { medal: '🥉', bg: 'bg-amber-50 border-amber-200', numColor: 'text-amber-600' },
-  { medal: '', bg: 'bg-white border-[#E5E5EA]', numColor: 'text-[#8E8E93]' },
-  { medal: '', bg: 'bg-white border-[#E5E5EA]', numColor: 'text-[#8E8E93]' },
+  { medal: '🥇', bg: 'bg-amber-50 border-amber-300', numColor: 'text-amber-600' },
+  { medal: '🥈', bg: 'bg-stone-50 border-stone-300', numColor: 'text-stone-500' },
+  { medal: '🥉', bg: 'bg-orange-50 border-orange-300', numColor: 'text-orange-700' },
+  { medal: '', bg: 'bg-[var(--card)] border-[var(--border)]', numColor: 'text-[var(--muted)]' },
+  { medal: '', bg: 'bg-[var(--card)] border-[var(--border)]', numColor: 'text-[var(--muted)]' },
 ]
 
 export default async function RankingPage() {
@@ -48,12 +48,12 @@ export default async function RankingPage() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div className="text-center">
         <div className="text-4xl mb-2">🏆</div>
-        <h1 className="text-xl font-bold text-[#1C1C1E]"> アクセス数の多いライフハック</h1>
-        <p className="text-sm text-[#8E8E93] mt-1">過去7日間の閲覧数ランキング</p>
+        <h1 className="font-wa text-xl font-bold text-[var(--foreground)]"> アクセス数の多いライフハック</h1>
+        <p className="text-sm text-[var(--muted)] mt-1">過去7日間の閲覧数ランキング</p>
       </div>
 
       {ranking.length === 0 ? (
-        <div className="text-center py-16 text-[#8E8E93]">
+        <div className="text-center py-16 text-[var(--muted)]">
           <p>まだランキングデータがありません</p>
           <p className="text-sm mt-2">ライフハックを閲覧するとランキングに反映されます</p>
         </div>
@@ -66,7 +66,7 @@ export default async function RankingPage() {
               <Link
                 key={lh.id}
                 href={`/lifehack/${lh.id}`}
-                className={`flex items-center gap-4 p-4 rounded-2xl border-2 hover:shadow-md transition-all ${style.bg}`}
+                className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-transform duration-200 active:scale-[0.99] ${style.bg}`}
               >
                 {/* 順位 */}
                 <div className="flex flex-col items-center w-10 shrink-0">
@@ -79,16 +79,16 @@ export default async function RankingPage() {
 
                 {/* コンテンツ */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[#1C1C1E] text-sm line-clamp-2">
+                  <p className="font-wa font-semibold text-[var(--foreground)] text-sm line-clamp-2">
                     {lh.title || lh.description.slice(0, 40) + '…'}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs">{info.icon}</span>
-                    <span className="text-xs text-[#8E8E93]">{info.label}</span>
+                    <span className="text-xs text-[var(--muted)]">{info.label}</span>
                     {lh.author && (
                       <>
-                        <span className="text-xs text-[#8E8E93]">·</span>
-                        <span className="text-xs text-[#8E8E93]">{lh.author}</span>
+                        <span className="text-xs text-[var(--muted)]">·</span>
+                        <span className="text-xs text-[var(--muted)]">{lh.author}</span>
                       </>
                     )}
                   </div>
@@ -96,8 +96,8 @@ export default async function RankingPage() {
 
                 {/* 閲覧数 */}
                 <div className="text-right shrink-0">
-                  <div className="text-lg font-bold text-[#E85A2C]">{viewCount}</div>
-                  <div className="text-xs text-[#8E8E93]">閲覧</div>
+                  <div className="text-lg font-bold text-[var(--primary)]">{viewCount}</div>
+                  <div className="text-xs text-[var(--muted)]">閲覧</div>
                 </div>
               </Link>
             )

@@ -15,7 +15,9 @@ export default function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 glass-card border-t border-white/60 z-50 md:hidden shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+    <nav className="fixed bottom-0 left-0 right-0 glass-card border-t border-[var(--border)] z-50 md:hidden shadow-[0_-4px_16px_rgba(42,35,32,0.05)]">
+      {/* のれん風の朱色帯 */}
+      <div className="noren-bar h-0.5 w-full" />
       <ul className="flex">
         {NAV_ITEMS.map(({ href, icon, label }) => {
           const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -23,8 +25,8 @@ export default function BottomNav() {
             <li key={href} className="flex-1">
               <Link
                 href={href}
-                className={`flex flex-col items-center justify-center py-2 gap-0.5 transition-all duration-150 active:scale-90 ${
-                  isActive ? 'text-[#E85A2C]' : 'text-[#8E8E93] hover:text-[#E85A2C]'
+                className={`flex flex-col items-center justify-center py-2 gap-0.5 transition-[color,transform] duration-150 active:scale-90 ${
+                  isActive ? 'text-[var(--primary)]' : 'text-[var(--muted)] hover:text-[var(--primary)]'
                 }`}
               >
                 <span className="text-xl leading-none">{icon}</span>
@@ -38,7 +40,7 @@ export default function BottomNav() {
             href={FORM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center py-2 gap-0.5 text-[#E85A2C] transition-all duration-150 active:scale-90"
+            className="flex flex-col items-center justify-center py-2 gap-0.5 text-[var(--primary)] transition-transform duration-150 active:scale-90"
           >
             <span className="text-xl leading-none">✏️</span>
             <span className="text-[10px] font-medium">ライフハック追加</span>

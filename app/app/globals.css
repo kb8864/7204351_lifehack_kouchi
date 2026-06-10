@@ -1,27 +1,35 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
-  --primary: #E85A2C;
-  --primary-dark: #C94B22;
-  --primary-light: #FFF0EB;
-  --background: #F7F7F5;
-  --foreground: #1C1C1E;
-  --card: #FFFFFF;
-  --border: #E5E5EA;
-  --muted: #8E8E93;
+  /* 和風よさこいパレット */
+  --primary: #C73E3A;        /* 朱色/緋色 */
+  --primary-dark: #9E2B27;   /* 深い緋色 */
+  --primary-light: #FBEAE6;  /* 朱色の和紙ぼかし */
+  --secondary: #223A70;      /* 紺藍 */
+  --secondary-dark: #1F3A5F; /* 深い紺藍 */
+  --accent: #C9A227;         /* 金 */
+  --background: #FAF6F0;     /* 生成り/和紙色 */
+  --foreground: #2A2320;     /* 墨色 */
+  --card: #FFFDFA;           /* 白和紙 */
+  --border: #E7DECF;         /* 和紙の罫線 */
+  --muted: #8C8174;          /* 枯れ色 */
 }
 
 @theme inline {
   --color-primary: var(--primary);
   --color-primary-dark: var(--primary-dark);
   --color-primary-light: var(--primary-light);
+  --color-secondary: var(--secondary);
+  --color-secondary-dark: var(--secondary-dark);
+  --color-accent: var(--accent);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-border: var(--border);
   --color-muted: var(--muted);
-  --font-sans: "Noto Sans JP", sans-serif;
+  /* フォントは next/font から CSS変数で注入 */
+  --font-sans: var(--font-noto-sans-jp), sans-serif;
+  --font-wa: var(--font-shippori), serif;
 }
 
 * {
@@ -29,29 +37,35 @@
 }
 
 body {
-  background: linear-gradient(145deg, #fff5ef 0%, #fffcf9 45%, #fff8f5 100%);
-  /* background-attachment: fixed はモバイルでちらつくため除去 */
+  /* 単色の和紙色 + 軽量な青海波パターンを静的に敷く（固定オーブ撤去で再描画コスト削減） */
+  background-color: #FAF6F0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='30' viewBox='0 0 60 30'%3E%3Cg fill='none' stroke='%23E3D8C5' stroke-width='1' opacity='0.55'%3E%3Cpath d='M0 30a15 15 0 0 1 30 0a15 15 0 0 1 30 0'/%3E%3Cpath d='M0 22a15 15 0 0 1 30 0a15 15 0 0 1 30 0'/%3E%3Cpath d='M0 14a15 15 0 0 1 30 0a15 15 0 0 1 30 0'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 60px 30px;
   color: var(--foreground);
-  font-family: "Noto Sans JP", sans-serif;
+  font-family: var(--font-noto-sans-jp), sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* グラスモーフィズム背景用 装飾オーブ */
-.bg-orb-orange {
-  background: radial-gradient(circle, rgba(232, 90, 44, 0.18) 0%, transparent 70%);
-}
-.bg-orb-amber {
-  background: radial-gradient(circle, rgba(255, 175, 50, 0.14) 0%, transparent 70%);
-}
-.bg-orb-rose {
-  background: radial-gradient(circle, rgba(255, 100, 100, 0.10) 0%, transparent 70%);
+/* 和風見出しフォント用ユーティリティ */
+.font-wa {
+  font-family: var(--font-shippori), serif;
 }
 
-/* グラスカード共通 */
-/* backdrop-filter: blur はモバイルスクロール時にちらつくため除去し、白背景で代替 */
+/* 和紙カード（旧 .glass-card の差し替え。backdrop-filter 不使用） */
 .glass-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+/* 朱色の帯（のれん風） */
+.noren-bar {
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
+/* 家紋風の丸 */
+.kamon {
+  border: 2px solid var(--accent);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar {
@@ -65,19 +79,19 @@ body {
   border-radius: 2px;
 }
 
-/* スケルトンシマーアニメーション */
+/* スケルトンシマーアニメーション（和紙トーン） */
 @keyframes sk-shimmer {
   0% { background-position: -600px 0; }
   100% { background-position: 600px 0; }
 }
 .sk {
-  background: linear-gradient(90deg, rgba(255,245,240,0.8) 25%, rgba(255,230,220,0.6) 50%, rgba(255,245,240,0.8) 75%);
+  background: linear-gradient(90deg, rgba(231,222,207,0.55) 25%, rgba(244,238,228,0.85) 50%, rgba(231,222,207,0.55) 75%);
   background-size: 600px 100%;
   animation: sk-shimmer 1.5s linear infinite;
   border-radius: inherit;
 }
 
-/* ページ遷移トップローダー */
+/* ページ遷移トップローダー（朱色） */
 @keyframes top-loader-slide {
   0% { left: -60%; }
   100% { left: 110%; }
@@ -89,7 +103,7 @@ body {
   right: 0;
   height: 3px;
   z-index: 9999;
-  background: rgba(232, 90, 44, 0.15);
+  background: rgba(199, 62, 58, 0.15);
   overflow: hidden;
 }
 .page-loader::after {
@@ -98,7 +112,7 @@ body {
   top: 0;
   height: 100%;
   width: 60%;
-  background: linear-gradient(90deg, transparent, #E85A2C 50%, transparent);
+  background: linear-gradient(90deg, transparent, var(--primary) 50%, transparent);
   animation: top-loader-slide 1.3s ease-in-out infinite;
 }
 

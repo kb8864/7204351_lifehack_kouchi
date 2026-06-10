@@ -13,15 +13,15 @@ function truncate(text: string, len = 30) {
 }
 
 const CATEGORY_THUMB: Record<string, string> = {
-  food:         'from-orange-200 via-amber-100 to-red-100',
-  costume_make: 'from-pink-200 via-rose-100 to-fuchsia-100',
-  other:        'from-purple-200 via-violet-100 to-indigo-100',
+  food:         'from-red-100 via-amber-50 to-orange-100',
+  costume_make: 'from-indigo-100 via-blue-50 to-slate-100',
+  other:        'from-amber-100 via-yellow-50 to-stone-100',
 }
 
 const CATEGORY_ACCENT: Record<string, string> = {
-  food:         'from-orange-400 to-red-400',
-  costume_make: 'from-pink-400 to-fuchsia-400',
-  other:        'from-violet-400 to-indigo-400',
+  food:         'from-red-600 to-red-800',
+  costume_make: 'from-indigo-700 to-blue-900',
+  other:        'from-amber-500 to-amber-700',
 }
 
 export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProps) {
@@ -33,7 +33,7 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
   return (
     <Link
       href={`/lifehack/${lifehack.id}`}
-      className="block glass-card rounded-2xl hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-200 overflow-hidden"
+      className="block glass-card rounded-2xl hover:-translate-y-1 active:scale-[0.98] transition-transform duration-200 overflow-hidden"
     >
       {/* カテゴリアクセントバー */}
       <div className={`h-1 w-full bg-gradient-to-r ${accentGrad}`} />
@@ -60,11 +60,11 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
 
       {/* コンテンツ */}
       <div className="p-3">
-        <h3 className="font-semibold text-[#1C1C1E] text-sm leading-snug mb-1 line-clamp-2">
+        <h3 className="font-wa font-semibold text-[var(--foreground)] text-sm leading-snug mb-1 line-clamp-2">
           {displayTitle}
         </h3>
         {lifehack.author && (
-          <p className="text-xs text-[#8E8E93] mb-2">by {lifehack.author}</p>
+          <p className="text-xs text-[var(--muted)] mb-2">by {lifehack.author}</p>
         )}
 
         {/* タグ */}
@@ -81,10 +81,10 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
 
         {/* お気に入り数 */}
         <div className="flex items-center gap-1 text-xs mt-1">
-          <span className={(lifehack.favorite_count ?? 0) > 0 ? 'text-red-400' : 'text-[#C7C7CC]'}>
+          <span className={(lifehack.favorite_count ?? 0) > 0 ? 'text-[var(--primary)]' : 'text-[#C9BFB0]'}>
             ♥
           </span>
-          <span className={(lifehack.favorite_count ?? 0) > 0 ? 'font-semibold text-red-400' : 'text-[#C7C7CC]'}>
+          <span className={(lifehack.favorite_count ?? 0) > 0 ? 'font-semibold text-[var(--primary)]' : 'text-[#C9BFB0]'}>
             {lifehack.favorite_count ?? 0}
           </span>
         </div>

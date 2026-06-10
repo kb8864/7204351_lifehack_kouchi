@@ -2,12 +2,11 @@ export const revalidate = 60
 
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
-import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
-import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
 import { getLifehacksByCategory, searchLifehacks, getSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
 import { getOgpImageMap } from '@/lib/ogp'
+import { getFavoriteCounts } from '@/lib/favorites'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 import CategoryFilter from '@/components/CategoryFilter'
@@ -16,16 +15,6 @@ interface Props {
   params: Promise<{ category: string }>
   searchParams: Promise<{ tag?: string; q?: string }>
 }
-
-const getCachedFavCounts = unstable_cache(
-  async (ids: number[]) => {
-    const supabase = createServerClient()
-    const { data } = await supabase.from('anonymous_favorites').select('lifehack_id').in('lifehack_id', ids)
-    return data ?? []
-  },
-  ['fav-counts'],
-  { revalidate: 60 }
-)
 
 async function getLifehacks(
   category: Category,
@@ -62,15 +51,8 @@ async function getLifehacks(
 
   // Supabaseからお気に入り情報をオーバーレイ（失敗しても続行）
   try {
-    const supabase = createServerClient()
     const ids = lifehacks.map((lh) => lh.id)
-
-    const favCounts = await getCachedFavCounts(ids)
-    const countMap: Record<number, number> = {}
-    favCounts.forEach((f) => {
-      countMap[f.lifehack_id] = (countMap[f.lifehack_id] ?? 0) + 1
-    })
-
+    const countMap = await getFavoriteCounts(ids)
     lifehacks = lifehacks.map((lh) => ({
       ...lh,
       favorite_count: countMap[lh.id] ?? 0,
@@ -103,18 +85,20 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
       {/* パンくず */}
-      <nav className="flex items-center gap-1.5 text-sm text-[#8E8E93]">
-        <Link href="/" className="hover:text-[#E85A2C] transition-colors">ホーム</Link>
+      <nav className="flex items-center gap-1.5 text-sm text-[var(--muted)]">
+        <Link href="/" className="hover:text-[var(--primary)] transition-colors">ホーム</Link>
         <span>›</span>
         <span className={info.color}>{info.icon} {info.label}</span>
       </nav>
 
       {/* ヘッダー */}
       <div className={`glass-card rounded-2xl overflow-hidden`}>
+        {/* のれん風の朱色帯 */}
+        <div className="noren-bar h-1 w-full" />
         <div className={`${info.bgColor} border-b ${info.borderColor} px-5 pt-5 pb-4`}>
           <div className="text-5xl mb-2">{info.icon}</div>
-          <h1 className={`text-2xl font-black ${info.color}`}>{info.label}</h1>
-          <p className="text-sm text-[#8E8E93] mt-1">{lifehacks.length}件のライフハック</p>
+          <h1 className={`font-wa text-2xl font-extrabold ${info.color}`}>{info.label}</h1>
+          <p className="text-sm text-[var(--muted)] mt-1">{lifehacks.length}件のライフハック</p>
         </div>
       </div>
 
@@ -124,7 +108,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           <Link
             key={slug}
             href={`/${slug}`}
-            className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full border-2 text-sm font-medium transition-all hover:shadow-sm ${cat.bgColor} ${cat.borderColor} ${cat.color}`}
+            className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full border-2 text-sm font-medium transition-colors ${cat.bgColor} ${cat.borderColor} ${cat.color}`}
           >
             <span>{cat.icon}</span>
             <span>{cat.label}</span>
@@ -144,7 +128,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
       {/* 一覧 */}
       {lifehacks.length === 0 ? (
-        <div className="text-center py-16 text-[#8E8E93]">
+        <div className="text-center py-16 text-[var(--muted)]">
           <div className="text-4xl mb-3">🔍</div>
           <p>該当するライフハックが見つかりませんでした</p>
         </div>

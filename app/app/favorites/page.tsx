@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { createServerClient } from '@/lib/supabase'
 import { getLifehackByDisplayId } from '@/lib/data'
+import { getFavoriteCounts } from '@/lib/favorites'
 import type { Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 
@@ -21,6 +22,16 @@ export default async function FavoritesPage() {
     lifehacks = (
       await Promise.all((favs ?? []).map((f) => getLifehackByDisplayId(f.lifehack_id)))
     ).filter((lh): lh is Lifehack => lh !== null)
+
+    // お気に入り数をオーバーレイ
+    if (lifehacks.length > 0) {
+      const ids = lifehacks.map((lh) => lh.id)
+      const countMap = await getFavoriteCounts(ids)
+      lifehacks = lifehacks.map((lh) => ({
+        ...lh,
+        favorite_count: countMap[lh.id] ?? 0,
+      }))
+    }
   }
 
   return (
@@ -28,16 +39,16 @@ export default async function FavoritesPage() {
       <div className="flex items-center gap-3">
         <span className="text-3xl">❤️</span>
         <div>
-          <h1 className="text-xl font-bold text-[#1C1C1E]">お気に入り</h1>
-          <p className="text-sm text-[#8E8E93]">{lifehacks.length}件</p>
+          <h1 className="font-wa text-xl font-bold text-[var(--foreground)]">お気に入り</h1>
+          <p className="text-sm text-[var(--muted)]">{lifehacks.length}件</p>
         </div>
       </div>
 
       {lifehacks.length === 0 ? (
-        <div className="text-center py-16 text-[#8E8E93]">
+        <div className="text-center py-16 text-[var(--muted)]">
           <div className="text-4xl mb-3">🤍</div>
           <p className="mb-4">お気に入りがまだありません</p>
-          <a href="/" className="text-[#E85A2C] font-medium text-sm">
+          <a href="/" className="text-[var(--primary)] font-medium text-sm">
             ライフハックを探してみる →
           </a>
         </div>

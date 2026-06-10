@@ -7,7 +7,7 @@ export default function FavoritesLoading() {
         <div className="sk h-4 w-24 rounded-full" />
         <div className="grid grid-cols-2 gap-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-2xl overflow-hidden border border-gray-100">
+            <div key={i} className="rounded-2xl overflow-hidden border border-[var(--border)]">
               <div className="sk h-36" style={{ borderRadius: 0 }} />
               <div className="p-3 space-y-2">
                 <div className="sk h-4 w-full rounded-full" />

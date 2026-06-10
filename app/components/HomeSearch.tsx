@@ -49,23 +49,23 @@ export default function HomeSearch({ lifehacks, popularTags }: Props) {
   return (
     <div ref={containerRef} className="relative">
       <div
-        className={`flex items-center gap-2 bg-white border rounded-xl px-4 py-3 transition-colors shadow-sm ${
-          focused ? 'border-[#E85A2C]' : 'border-[#E5E5EA]'
+        className={`flex items-center gap-2 bg-[var(--card)] border rounded-xl px-4 py-3 transition-colors shadow-sm ${
+          focused ? 'border-[var(--primary)]' : 'border-[var(--border)]'
         }`}
       >
-        <span className="text-[#8E8E93]">🔍</span>
+        <span className="text-[var(--muted)]">🔍</span>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
           placeholder="ライフハックを検索..."
-          className="flex-1 text-sm bg-transparent focus:outline-none text-[#1C1C1E] placeholder-[#8E8E93]"
+          className="flex-1 text-sm bg-transparent focus:outline-none text-[var(--foreground)] placeholder-[var(--muted)]"
         />
         {query && (
           <button
             onClick={() => setQuery('')}
-            className="text-[#8E8E93] hover:text-[#1C1C1E] text-xl leading-none"
+            className="text-[var(--muted)] hover:text-[var(--foreground)] text-xl leading-none"
           >
             ×
           </button>
@@ -73,17 +73,17 @@ export default function HomeSearch({ lifehacks, popularTags }: Props) {
       </div>
 
       {showPanel && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E5E5EA] rounded-xl shadow-lg z-50 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-lg z-50 overflow-hidden">
           {/* 人気タグのサジェスト（未入力時） */}
           {!query && popularTags.length > 0 && (
             <div className="p-3">
-              <p className="text-xs text-[#8E8E93] mb-2">みんながよく検索するキーワード</p>
+              <p className="text-xs text-[var(--muted)] mb-2">みんながよく検索するキーワード</p>
               <div className="flex flex-wrap gap-1.5">
                 {popularTags.map((tag) => (
                   <button
                     key={tag}
                     onClick={() => setQuery(tag)}
-                    className="text-xs bg-[#F7F7F5] text-[#1C1C1E] px-2.5 py-1 rounded-full hover:bg-[#E85A2C] hover:text-white transition-colors"
+                    className="text-xs bg-[var(--background)] text-[var(--foreground)] px-2.5 py-1 rounded-full hover:bg-[var(--primary)] hover:text-white transition-colors"
                   >
                     🔍 {tag}
                   </button>
@@ -102,14 +102,14 @@ export default function HomeSearch({ lifehacks, popularTags }: Props) {
                     key={lh.id}
                     href={`/lifehack/${lh.id}`}
                     onClick={() => { setFocused(false); setQuery('') }}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-[#F7F7F5] transition-colors"
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-[var(--background)] transition-colors"
                   >
                     <span className="text-base mt-0.5 shrink-0">{info?.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1C1C1E] line-clamp-1">
+                      <p className="text-sm font-medium text-[var(--foreground)] line-clamp-1">
                         {lh.title || lh.description.slice(0, 30) + '…'}
                       </p>
-                      <p className="text-xs text-[#8E8E93] mt-0.5 line-clamp-1">
+                      <p className="text-xs text-[var(--muted)] mt-0.5 line-clamp-1">
                         {lh.description}
                       </p>
                     </div>
@@ -121,7 +121,7 @@ export default function HomeSearch({ lifehacks, popularTags }: Props) {
 
           {/* 結果なし */}
           {query && results.length === 0 && (
-            <div className="px-4 py-6 text-center text-[#8E8E93] text-sm">
+            <div className="px-4 py-6 text-center text-[var(--muted)] text-sm">
               「{query}」に一致するライフハックが見つかりませんでした
             </div>
           )}

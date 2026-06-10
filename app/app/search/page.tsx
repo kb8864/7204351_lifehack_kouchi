@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { searchLifehacks, getAllSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
 import { getOgpImageMap } from '@/lib/ogp'
+import { getFavoriteCounts } from '@/lib/favorites'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
@@ -31,7 +32,11 @@ async function search(query: string, category: string): Promise<Lifehack[]> {
     )
   })
 
-  return [...jsonResults, ...supabaseFiltered]
+  const results = [...jsonResults, ...supabaseFiltered]
+
+  // お気に入り数をオーバーレイ（失敗しても表示は継続）
+  const countMap = await getFavoriteCounts(results.map((lh) => lh.id))
+  return results.map((lh) => ({ ...lh, favorite_count: countMap[lh.id] ?? 0 }))
 }
 
 export default async function SearchPage({ searchParams }: Props) {
@@ -41,7 +46,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
-      <h1 className="text-xl font-bold text-[#1C1C1E]">🔍 ライフハックを検索</h1>
+      <h1 className="font-wa text-xl font-bold text-[var(--foreground)]">🔍 ライフハックを検索</h1>
 
       <Suspense>
         <SearchInput defaultValue={q} defaultCategory={category} />
@@ -51,10 +56,10 @@ export default async function SearchPage({ searchParams }: Props) {
       <div className="flex flex-wrap gap-2">
         <Link
           href={`/search${q ? `?q=${q}` : ''}`}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
             !category
-              ? 'bg-[#E85A2C] text-white border-[#E85A2C]'
-              : 'bg-white border-[#E5E5EA] text-[#8E8E93]'
+              ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+              : 'bg-[var(--card)] border-[var(--border)] text-[var(--muted)]'
           }`}
         >
           すべて
@@ -64,10 +69,10 @@ export default async function SearchPage({ searchParams }: Props) {
             <Link
               key={slug}
               href={`/search?${q ? `q=${q}&` : ''}category=${slug}`}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                 category === slug
-                  ? 'bg-[#E85A2C] text-white border-[#E85A2C]'
-                  : 'bg-white border-[#E5E5EA] text-[#8E8E93]'
+                  ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                  : 'bg-[var(--card)] border-[var(--border)] text-[var(--muted)]'
               }`}
             >
               {info.icon} {info.label}
@@ -78,7 +83,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
       {/* 検索結果 */}
       {!q && !category ? (
-        <div className="text-center py-16 text-[#8E8E93]">
+        <div className="text-center py-16 text-[var(--muted)]">
           <div className="text-4xl mb-3">💡</div>
           <p>キーワードを入力してライフハックを探しましょう</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -94,13 +99,13 @@ export default async function SearchPage({ searchParams }: Props) {
           </div>
         </div>
       ) : results.length === 0 ? (
-        <div className="text-center py-16 text-[#8E8E93]">
+        <div className="text-center py-16 text-[var(--muted)]">
           <div className="text-4xl mb-3">😢</div>
           <p>「{q}」に一致するライフハックが見つかりませんでした</p>
         </div>
       ) : (
         <>
-          <p className="text-sm text-[#8E8E93]">{results.length}件見つかりました</p>
+          <p className="text-sm text-[var(--muted)]">{results.length}件見つかりました</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {results.map((lh) => (
               <LifehackCard key={lh.id} lifehack={lh} ogpImageUrl={ogpMap[lh.id] ?? null} />

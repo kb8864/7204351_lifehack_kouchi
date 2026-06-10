@@ -1,7 +1,25 @@
 import type { Metadata, Viewport } from 'next'
+import { Noto_Sans_JP, Shippori_Mincho_B1 } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
+import UidSync from '@/components/UidSync'
+
+// 本文フォント（self-host / render-blocking 解消）
+const notoSansJP = Noto_Sans_JP({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  display: 'swap',
+  variable: '--font-noto-sans-jp',
+})
+
+// 和風見出しフォント
+const shippori = Shippori_Mincho_B1({
+  subsets: ['latin'],
+  weight: ['600', '800'],
+  display: 'swap',
+  variable: '--font-shippori',
+})
 
 export const metadata: Metadata = {
   title: '七福よさこい連祝禧',
@@ -11,6 +29,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: '#C73E3A',
 }
 
 export default function RootLayout({
@@ -19,14 +38,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ja" className="h-full">
+    <html lang="ja" className={`h-full ${notoSansJP.variable} ${shippori.variable}`}>
       <body className="min-h-full flex flex-col">
-        {/* グラスモーフィズム用 背景装飾オーブ（固定） */}
-        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="bg-orb-orange absolute -top-40 -right-32 w-[480px] h-[480px] rounded-full" />
-          <div className="bg-orb-amber absolute bottom-10 -left-24 w-[380px] h-[380px] rounded-full" />
-          <div className="bg-orb-rose absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full" />
-        </div>
+        <UidSync />
         <Header />
         <main className="flex-1 pb-20 md:pb-0">{children}</main>
         <BottomNav />

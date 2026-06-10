@@ -38,12 +38,12 @@ export default function CategoryFilter({
     <div className="space-y-3">
       {/* 検索バー */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8E8E93] text-sm">🔍</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] text-sm">🔍</span>
         <input
           type="text"
           defaultValue={searchQuery}
           placeholder={`${info.label}のライフハックを検索...`}
-          className="w-full pl-9 pr-4 py-2.5 border border-[#E5E5EA] rounded-xl text-sm bg-white focus:outline-none focus:border-[#E85A2C] transition-colors"
+          className="w-full pl-9 pr-4 py-2.5 border border-[var(--border)] rounded-xl text-sm bg-[var(--card)] focus:outline-none focus:border-[var(--primary)] transition-colors"
           onChange={(e) => {
             const params = new URLSearchParams(searchParams.toString())
             if (e.target.value) {
@@ -62,10 +62,10 @@ export default function CategoryFilter({
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => updateQuery('tag', '')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               !activeTag
-                ? 'bg-[#E85A2C] text-white'
-                : 'bg-white border border-[#E5E5EA] text-[#8E8E93] hover:border-[#E85A2C]'
+                ? 'bg-[var(--primary)] text-white'
+                : 'bg-[var(--card)] border border-[var(--border)] text-[var(--muted)] hover:border-[var(--primary)]'
             }`}
           >
             すべて
@@ -74,7 +74,7 @@ export default function CategoryFilter({
             <button
               key={tag}
               onClick={() => updateQuery('tag', activeTag === tag ? '' : tag)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all text-white ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-opacity text-white ${
                 activeTag === tag
                   ? `${TAG_COLORS[tag] || DEFAULT_TAG_COLOR} ring-2 ring-offset-1 ring-current`
                   : `${TAG_COLORS[tag] || DEFAULT_TAG_COLOR} opacity-70 hover:opacity-100`

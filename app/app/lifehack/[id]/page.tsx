@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
@@ -65,17 +66,34 @@ export default async function LifehackDetailPage({ params }: Props) {
   }
   if (!lifehack) notFound()
 
-  // お気に入り数とOGP画像を並列取得（Supabase失敗時はデフォルト値）
+  // uid を Cookie から読む
+  const cookieStore = await cookies()
+  const uid = cookieStore.get('shichifuku_uid')?.value
+
+  // お気に入り数・ユーザーのお気に入り状態・OGP画像を並列取得（Supabase失敗時はデフォルト値）
   let totalFavorites = 0
+  let initialFavorited = false
   let ogpImage: string | null = null
 
   try {
     const supabase = createServerClient()
-    const [favCountResult, ogpResult] = await Promise.all([
-      supabase.from('favorites').select('id', { count: 'exact' }).eq('lifehack_id', lifehackId),
+    const [favCountResult, favUserResult, ogpResult] = await Promise.all([
+      supabase
+        .from('anonymous_favorites')
+        .select('*', { count: 'exact', head: true })
+        .eq('lifehack_id', lifehackId),
+      uid
+        ? supabase
+            .from('anonymous_favorites')
+            .select('uid')
+            .eq('uid', uid)
+            .eq('lifehack_id', lifehackId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
       lifehack.link && !lifehack.photo ? fetchOGPImage(lifehack.link) : Promise.resolve(null),
     ])
-    totalFavorites = favCountResult.data?.length ?? 0
+    totalFavorites = favCountResult.count ?? 0
+    initialFavorited = !!(favUserResult.data)
     ogpImage = ogpResult
   } catch {
     if (lifehack.link && !lifehack.photo) {
@@ -92,18 +110,20 @@ export default async function LifehackDetailPage({ params }: Props) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       {/* パンくず */}
-      <nav className="flex items-center gap-2 text-sm text-[#8E8E93] mb-4">
-        <Link href="/" className="hover:text-[#E85A2C]">ホーム</Link>
+      <nav className="flex items-center gap-2 text-sm text-[var(--muted)] mb-4">
+        <Link href="/" className="hover:text-[var(--primary)]">ホーム</Link>
         <span>›</span>
-        <Link href={`/${lifehack.category}`} className="hover:text-[#E85A2C]">
+        <Link href={`/${lifehack.category}`} className="hover:text-[var(--primary)]">
           {info.icon} {info.label}
         </Link>
       </nav>
 
-      <article className="bg-white rounded-2xl shadow-sm border border-[#E5E5EA] overflow-hidden">
+      <article className="glass-card rounded-2xl shadow-sm overflow-hidden">
+        {/* のれん風の朱色帯 */}
+        <div className="noren-bar h-1 w-full" />
         {/* サムネイル */}
         {thumbnail && (
-          <div className="relative w-full h-52 bg-[#F7F7F5]">
+          <div className="relative w-full h-52 bg-[var(--background)]">
             <Image
               src={thumbnail}
               alt={lifehack.title || 'ライフハック'}
@@ -116,13 +136,13 @@ export default async function LifehackDetailPage({ params }: Props) {
 
         <div className="p-5 space-y-4">
           {/* タイトル */}
-          <h1 className="text-xl font-bold text-[#1C1C1E] leading-snug">
+          <h1 className="font-wa text-xl font-bold text-[var(--foreground)] leading-snug">
             {lifehack.title || lifehack.description.slice(0, 40) + '…'}
           </h1>
 
           {/* 投稿者 */}
           {lifehack.author && (
-            <p className="text-sm text-[#8E8E93]">
+            <p className="text-sm text-[var(--muted)]">
               💬 {lifehack.author}
             </p>
           )}
@@ -140,7 +160,7 @@ export default async function LifehackDetailPage({ params }: Props) {
           </div>
 
           {/* 本文 */}
-          <div className="text-[15px] text-[#1C1C1E] leading-relaxed whitespace-pre-wrap bg-[#F7F7F5] rounded-xl p-4">
+          <div className="text-[15px] text-[var(--foreground)] leading-relaxed whitespace-pre-wrap bg-[var(--background)] border border-[var(--border)] rounded-xl p-4">
             {lifehack.description}
           </div>
 
@@ -151,7 +171,7 @@ export default async function LifehackDetailPage({ params }: Props) {
                 href={lifehack.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 border border-[#E85A2C] text-[#E85A2C] rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-[#FFF0EB] transition-colors"
+                className="flex items-center gap-2 border border-[var(--primary)] text-[var(--primary)] rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-[var(--primary-light)] transition-colors"
               >
                 <span>🔗</span>
                 <span>関連リンクを見る</span>
@@ -161,9 +181,9 @@ export default async function LifehackDetailPage({ params }: Props) {
           )}
 
           {/* お気に入り */}
-          <div className="flex items-center justify-between pt-2 border-t border-[#E5E5EA]">
-            <FavoriteButton lifehackId={lifehack.id} />
-            <span className="text-xs text-[#C7C7CC]">
+          <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+            <FavoriteButton lifehackId={lifehack.id} initialFavorited={initialFavorited} initialCount={totalFavorites} />
+            <span className="text-xs text-[var(--muted)]">
               {totalFavorites > 0 ? `${totalFavorites}人がお気に入り` : ''}
             </span>
           </div>
@@ -174,7 +194,7 @@ export default async function LifehackDetailPage({ params }: Props) {
       <div className="mt-4">
         <Link
           href={`/${lifehack.category}`}
-          className="text-sm text-[#E85A2C] font-medium flex items-center gap-1"
+          className="text-sm text-[var(--primary)] font-medium flex items-center gap-1"
         >
           ← {info.label}一覧に戻る
         </Link>
