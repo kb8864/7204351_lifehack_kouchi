@@ -30,7 +30,7 @@
 
 body {
   background: linear-gradient(145deg, #fff5ef 0%, #fffcf9 45%, #fff8f5 100%);
-  background-attachment: fixed;
+  /* background-attachment: fixed はモバイルでちらつくため除去 */
   color: var(--foreground);
   font-family: "Noto Sans JP", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -48,10 +48,9 @@ body {
 }
 
 /* グラスカード共通 */
+/* backdrop-filter: blur はモバイルスクロール時にちらつくため除去し、白背景で代替 */
 .glass-card {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.85);
 }
 
