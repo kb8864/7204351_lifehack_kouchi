@@ -5,8 +5,8 @@ import { COOKIE_NAME } from './lib/constants'
 
 const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET!)
 
-// ログインが必要なルート
-const PROTECTED_ROUTES = ['/favorites']
+// ログインが必要なルート（お気に入りはlocalStorage化のため不要）
+const PROTECTED_ROUTES: string[] = []
 // 管理者のみアクセス可能なルート（/admin/login は除外）
 const ADMIN_ROUTES = ['/admin']
 const ADMIN_PUBLIC_ROUTES = ['/admin/login']

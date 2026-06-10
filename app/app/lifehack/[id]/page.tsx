@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
-import { getSession } from '@/lib/auth'
 import { fetchOgpImage as fetchOGPImage } from '@/lib/ogp'
 import { getLifehackById, SUPABASE_ID_OFFSET, getHiddenJsonIds } from '@/lib/data'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
@@ -66,25 +65,18 @@ export default async function LifehackDetailPage({ params }: Props) {
   }
   if (!lifehack) notFound()
 
-  const session = await getSession()
-
-  // お気に入り情報とOGP画像を並列取得（Supabase失敗時はデフォルト値）
+  // お気に入り数とOGP画像を並列取得（Supabase失敗時はデフォルト値）
   let totalFavorites = 0
-  let isFavorited = false
   let ogpImage: string | null = null
 
   try {
     const supabase = createServerClient()
-    const [favCountResult, ogpResult, myFavResult] = await Promise.all([
+    const [favCountResult, ogpResult] = await Promise.all([
       supabase.from('favorites').select('id', { count: 'exact' }).eq('lifehack_id', lifehackId),
       lifehack.link && !lifehack.photo ? fetchOGPImage(lifehack.link) : Promise.resolve(null),
-      session
-        ? supabase.from('favorites').select('id').eq('user_id', session.id).eq('lifehack_id', lifehackId).maybeSingle()
-        : Promise.resolve({ data: null }),
     ])
     totalFavorites = favCountResult.data?.length ?? 0
     ogpImage = ogpResult
-    isFavorited = !!myFavResult.data
   } catch {
     if (lifehack.link && !lifehack.photo) {
       ogpImage = await fetchOGPImage(lifehack.link).catch(() => null)
@@ -170,17 +162,10 @@ export default async function LifehackDetailPage({ params }: Props) {
 
           {/* お気に入り */}
           <div className="flex items-center justify-between pt-2 border-t border-[#E5E5EA]">
-            <FavoriteButton
-              lifehackId={lifehack.id}
-              initialFavorited={isFavorited}
-              initialCount={totalFavorites}
-              isLoggedIn={!!session}
-            />
-            {!session && (
-              <p className="text-xs text-[#8E8E93]">
-                お気に入りにはLINEログインが必要です
-              </p>
-            )}
+            <FavoriteButton lifehackId={lifehack.id} />
+            <span className="text-xs text-[#C7C7CC]">
+              {totalFavorites > 0 ? `${totalFavorites}人がお気に入り` : ''}
+            </span>
           </div>
         </div>
       </article>

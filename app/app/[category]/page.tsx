@@ -6,7 +6,6 @@ import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
-import { getSession } from '@/lib/auth'
 import { getLifehacksByCategory, searchLifehacks, getSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
 import { getOgpImageMap } from '@/lib/ogp'
 import type { Category, Lifehack } from '@/types'
@@ -31,8 +30,7 @@ const getCachedFavCounts = unstable_cache(
 async function getLifehacks(
   category: Category,
   tag: string,
-  query: string,
-  userId: string | null
+  query: string
 ): Promise<Lifehack[]> {
   const hiddenIds = await getHiddenJsonIds()
 
@@ -67,26 +65,15 @@ async function getLifehacks(
     const supabase = createServerClient()
     const ids = lifehacks.map((lh) => lh.id)
 
-    // お気に入り数（キャッシュあり）とユーザーのお気に入りを並列取得
-    const [favCounts, myFavsResult] = await Promise.all([
-      getCachedFavCounts(ids),
-      userId
-        ? supabase.from('favorites').select('lifehack_id').eq('user_id', userId).in('lifehack_id', ids)
-        : Promise.resolve({ data: [] as { lifehack_id: number }[] }),
-    ])
-
+    const favCounts = await getCachedFavCounts(ids)
     const countMap: Record<number, number> = {}
     favCounts.forEach((f) => {
       countMap[f.lifehack_id] = (countMap[f.lifehack_id] ?? 0) + 1
     })
-    const favSet = new Set<number>(
-      (myFavsResult.data ?? []).map((f) => f.lifehack_id)
-    )
 
     lifehacks = lifehacks.map((lh) => ({
       ...lh,
       favorite_count: countMap[lh.id] ?? 0,
-      is_favorited: favSet.has(lh.id),
     }))
   } catch {
     // Supabase未設定でも表示は継続
@@ -105,9 +92,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   const category = categorySlug as Category
   const info = CATEGORIES[category]
-  const session = await getSession()
 
-  const lifehacks = await getLifehacks(category, tag, q, session?.id ?? null)
+  const lifehacks = await getLifehacks(category, tag, q)
   const ogpMap = await getOgpImageMap(lifehacks)
   const allTags = [...new Set(lifehacks.flatMap((lh) => lh.tags))]
 
