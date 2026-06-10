@@ -8,6 +8,7 @@ import { createServerClient } from '@/lib/supabase'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
 import { getSession } from '@/lib/auth'
 import { getLifehacksByCategory, searchLifehacks, getSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
+import { getOgpImageMap } from '@/lib/ogp'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 import CategoryFilter from '@/components/CategoryFilter'
@@ -107,6 +108,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const session = await getSession()
 
   const lifehacks = await getLifehacks(category, tag, q, session?.id ?? null)
+  const ogpMap = await getOgpImageMap(lifehacks)
   const allTags = [...new Set(lifehacks.flatMap((lh) => lh.tags))]
 
   const otherCategories = (Object.entries(CATEGORIES) as [Category, (typeof CATEGORIES)[Category]][])
@@ -161,7 +163,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {lifehacks.map((lh) => (
-            <LifehackCard key={lh.id} lifehack={lh} />
+            <LifehackCard key={lh.id} lifehack={lh} ogpImageUrl={ogpMap[lh.id] ?? null} />
           ))}
         </div>
       )}

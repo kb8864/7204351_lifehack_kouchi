@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { searchLifehacks, getAllSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
+import { getOgpImageMap } from '@/lib/ogp'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
@@ -36,6 +37,7 @@ async function search(query: string, category: string): Promise<Lifehack[]> {
 export default async function SearchPage({ searchParams }: Props) {
   const { q = '', category = '' } = await searchParams
   const results = await search(q, category)
+  const ogpMap = await getOgpImageMap(results)
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
@@ -101,7 +103,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <p className="text-sm text-[#8E8E93]">{results.length}件見つかりました</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {results.map((lh) => (
-              <LifehackCard key={lh.id} lifehack={lh} />
+              <LifehackCard key={lh.id} lifehack={lh} ogpImageUrl={ogpMap[lh.id] ?? null} />
             ))}
           </div>
         </>

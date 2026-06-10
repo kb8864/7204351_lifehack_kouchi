@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { fetchOGPImage } from '@/lib/ogp'
+import { fetchOgpImage as fetchOGPImage } from '@/lib/ogp'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)

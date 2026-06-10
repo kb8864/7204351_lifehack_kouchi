@@ -1,52 +1,48 @@
-import * as cheerio from 'cheerio'
-import { createServerClient } from './supabase'
+import { unstable_cache } from 'next/cache'
 
-export async function fetchOGPImage(url: string): Promise<string | null> {
-  // キャッシュを確認
-  const supabase = createServerClient()
-  const { data: cached } = await supabase
-    .from('ogp_cache')
-    .select('image_url')
-    .eq('url', url)
-    .single()
-
-  if (cached) return cached.image_url
-
-  // 新規フェッチ
+async function _fetchOgpImage(url: string): Promise<string | null> {
   try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 2000)
     const res = await fetch(url, {
-      signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; ShichifukuBot/1.0)',
+        'User-Agent':
+          'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        Accept: 'text/html',
       },
+      signal: AbortSignal.timeout(4000),
     })
-    clearTimeout(timeout)
-
-    if (!res.ok) {
-      await cacheOGP(url, null)
-      return null
-    }
-
+    if (!res.ok) return null
     const html = await res.text()
-    const $ = cheerio.load(html)
 
-    const imageUrl =
-      $('meta[property="og:image"]').attr('content') ||
-      $('meta[name="twitter:image"]').attr('content') ||
-      null
-
-    const resolved = imageUrl && imageUrl.startsWith('http') ? imageUrl : null
-    await cacheOGP(url, resolved)
-    return resolved
+    const m =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+    const img = m ? m[1] : null
+    return img && img.startsWith('http') ? img : null
   } catch {
-    await cacheOGP(url, null)
     return null
   }
 }
 
-async function cacheOGP(url: string, imageUrl: string | null) {
-  const supabase = createServerClient()
-  await supabase.from('ogp_cache').upsert({ url, image_url: imageUrl })
+export const fetchOgpImage = unstable_cache(
+  _fetchOgpImage,
+  ['ogp-image'],
+  { revalidate: 60 * 60 * 24 } // 24時間キャッシュ
+)
+
+/** リンクを持つライフハックのOGP画像を並列取得して id→imageUrl マップを返す */
+export async function getOgpImageMap(
+  lifehacks: { id: number; link: string | null }[]
+): Promise<Record<number, string>> {
+  const withLink = lifehacks.filter((lh) => lh.link)
+  const results = await Promise.all(
+    withLink.map(async (lh) => {
+      const img = await fetchOgpImage(lh.link!)
+      return { id: lh.id, img }
+    })
+  )
+  const map: Record<number, string> = {}
+  for (const { id, img } of results) {
+    if (img) map[id] = img
+  }
+  return map
 }
