@@ -3,7 +3,7 @@ export const revalidate = 60
 import Link from 'next/link'
 import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
-import { getCategoryCounts as getJsonCounts, getAllLifehacks, getLifehackByDisplayId } from '@/lib/data'
+import { getLifehacksByCategory, getHiddenJsonIds, getAllLifehacks, getLifehackByDisplayId } from '@/lib/data'
 import { CATEGORIES } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import HomeSearch from '@/components/HomeSearch'
@@ -28,11 +28,32 @@ async function getWeeklyRanking(): Promise<Lifehack[]> {
   }
 }
 
-export default async function HomePage() {
-  const counts = getJsonCounts()
-  const rankingLifehacks = await getWeeklyRanking()
+async function getLiveCategoryCounts(): Promise<Record<Category, number>> {
+  const supabase = createServerClient()
+  const [hiddenIds, { data: supabaseCounts }] = await Promise.all([
+    getHiddenJsonIds(),
+    supabase
+      .from('lifehacks')
+      .select('category')
+      .eq('is_approved', true)
+      .eq('is_deleted', false),
+  ])
 
-  // 検索用データとサジェストタグを準備
+  const counts: Record<Category, number> = { food: 0, costume_make: 0, other: 0 }
+  for (const cat of ['food', 'costume_make', 'other'] as Category[]) {
+    const jsonCount = getLifehacksByCategory(cat).filter((lh) => !hiddenIds.has(lh.id)).length
+    const supabaseCount = (supabaseCounts ?? []).filter((r) => r.category === cat).length
+    counts[cat] = jsonCount + supabaseCount
+  }
+  return counts
+}
+
+export default async function HomePage() {
+  const [counts, rankingLifehacks] = await Promise.all([
+    getLiveCategoryCounts(),
+    getWeeklyRanking(),
+  ])
+
   const allLifehacks = getAllLifehacks()
   const searchLifehacks = allLifehacks.map((lh) => ({
     id: lh.id,
