@@ -96,7 +96,8 @@ export function searchLifehacks(query: string, category?: Category): Lifehack[] 
   return source.filter(
     (lh) =>
       lh.description.toLowerCase().includes(q) ||
-      (lh.title?.toLowerCase().includes(q))
+      (lh.title?.toLowerCase().includes(q)) ||
+      lh.tags.some((t) => t.toLowerCase().includes(q))
   )
 }
 

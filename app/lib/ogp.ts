@@ -2,7 +2,7 @@ import { unstable_cache } from 'next/cache'
 
 // Amazon・Rakutenはサーバーサイドからのスクレイピングをブロックするため
 // Microlink API 経由で取得する
-const NEED_PROXY = /amazon\.(co\.jp|com)|rakuten\.co\.jp/i
+const NEED_PROXY = /amazon\.(co\.jp|com)|amzn\.(asia|to)|rakuten\.co\.jp|a\.r10\.to|hb\.afl\.rakuten\.co\.jp/i
 
 async function fetchViaMicrolink(url: string): Promise<string | null> {
   try {

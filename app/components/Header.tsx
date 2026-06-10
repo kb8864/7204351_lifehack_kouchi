@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Header() {
   return (
-    <header className="glass-card border-b border-[var(--border)] sticky top-0 z-50 shadow-sm">
+    <header className="glass-card border-b border-[var(--border)] z-50 shadow-sm">
       {/* のれん風の朱色帯 */}
       <div className="noren-bar h-1.5 w-full" />
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center">

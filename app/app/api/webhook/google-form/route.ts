@@ -6,7 +6,7 @@ import type { Category } from '@/types'
 
 // カタカナ → ひらがな に変換（タグ名の表記ゆれを吸収）
 function normalizeTag(tag: string): string {
-  return tag.trim().replace(/[\u30A1-\u30F6]/g, (c) =>
+  return tag.trim().replace(/[ァ-ヶ]/g, (c) =>
     String.fromCharCode(c.charCodeAt(0) - 0x60)
   )
 }
@@ -16,6 +16,35 @@ function resolveTag(input: string, existingTags: string[]): string {
   const normalized = normalizeTag(input)
   const match = existingTags.find((t) => normalizeTag(t) === normalized)
   return match ?? input.trim()
+}
+
+// タグを配列・文字列どちらでも受け取り、正規化済み重複排除配列に変換
+function parseTags(raw: unknown, existingTags: string[]): string[] {
+  if (!raw) return []
+  const items: string[] = Array.isArray(raw)
+    ? (raw as unknown[]).map((t) => String(t))
+    : String(raw).split(/[,、]/)
+  const resolved = items
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .map((t) => resolveTag(t, existingTags))
+  // 重複排除
+  return [...new Set(resolved)]
+}
+
+// URL正規化: 不正なURLはnullにする
+function normalizeLink(raw: unknown): string | null {
+  if (!raw) return null
+  const s = String(raw).trim()
+  if (!s) return null
+  // すでに http:// or https:// で始まる
+  if (/^https?:\/\//i.test(s)) return s
+  // www. やドメイン形式（スペースなし、ドット含む）
+  if (/^(www\.|[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)/i.test(s) && !/\s/.test(s)) {
+    return `https://${s}`
+  }
+  // URLらしくない文字列（スペース含む日本語文など）はnull
+  return null
 }
 
 export async function POST(req: Request) {
@@ -40,22 +69,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
   }
 
-  // タグの処理: カンマ区切り文字列 → 正規化済み配列
+  // タグの処理: 配列または文字列(カンマ・読点区切り) → 正規化済み重複排除配列
   const existingTags = Object.keys(TAG_COLORS)
-  const tagsArray = tags
-    ? String(tags)
-        .split(',')
-        .map((t: string) => resolveTag(t, existingTags))
-        .filter(Boolean)
-    : []
+  const tagsArray = parseTags(tags, existingTags)
+
+  // フィールドの正規化
+  const normalizedTitle = title ? String(title).trim() || null : null
+  const normalizedAuthor = author ? String(author).trim() || null : null
+  const normalizedDescription = String(description).trim()
+  const normalizedLink = normalizeLink(link)
 
   const supabase = createServerClient()
   const { error } = await supabase.from('lifehacks').insert({
-    title: title || null,
-    description,
-    author: author || null,
+    title: normalizedTitle,
+    description: normalizedDescription,
+    author: normalizedAuthor,
     category,
-    link: link || null,
+    link: normalizedLink,
     photo: photo || null,
     tags: tagsArray,
     is_approved: true,

@@ -15,7 +15,7 @@ export default function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 glass-card border-t border-[var(--border)] z-50 md:hidden shadow-[0_-4px_16px_rgba(42,35,32,0.05)]">
+    <nav className="glass-card border-t border-[var(--border)] z-50 md:hidden shadow-[0_-4px_16px_rgba(42,35,32,0.05)] pb-[env(safe-area-inset-bottom)]">
       {/* のれん風の朱色帯 */}
       <div className="noren-bar h-0.5 w-full" />
       <ul className="flex">

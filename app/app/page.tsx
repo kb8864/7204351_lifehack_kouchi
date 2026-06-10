@@ -3,7 +3,7 @@ export const revalidate = 60
 import Link from 'next/link'
 import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
-import { getLifehacksByCategory, getHiddenJsonIds, getAllLifehacks, getLifehackByDisplayId } from '@/lib/data'
+import { getLifehacksByCategory, getHiddenJsonIds, getAllLifehacks, getAllSupabaseLifehacks, getLifehackByDisplayId } from '@/lib/data'
 import { CATEGORIES } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import HomeSearch from '@/components/HomeSearch'
@@ -49,12 +49,17 @@ async function getLiveCategoryCounts(): Promise<Record<Category, number>> {
 }
 
 export default async function HomePage() {
-  const [counts, rankingLifehacks] = await Promise.all([
+  const [counts, rankingLifehacks, hiddenIds, supabaseLifehacks] = await Promise.all([
     getLiveCategoryCounts(),
     getWeeklyRanking(),
+    getHiddenJsonIds(),
+    getAllSupabaseLifehacks(),
   ])
 
-  const allLifehacks = getAllLifehacks()
+  // JSON(非表示除外) + Supabase承認済み投稿をマージ
+  const jsonLifehacks = getAllLifehacks().filter((lh) => !hiddenIds.has(lh.id))
+  const allLifehacks = [...jsonLifehacks, ...supabaseLifehacks]
+
   const searchLifehacks = allLifehacks.map((lh) => ({
     id: lh.id,
     title: lh.title,

@@ -4,6 +4,7 @@ import './globals.css'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import UidSync from '@/components/UidSync'
+import ScrollReset from '@/components/ScrollReset'
 
 // 本文フォント（self-host / render-blocking 解消）
 const notoSansJP = Noto_Sans_JP({
@@ -30,6 +31,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#C73E3A',
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -39,10 +41,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" className={`h-full ${notoSansJP.variable} ${shippori.variable}`}>
-      <body className="min-h-full flex flex-col">
+      <body className="h-dvh overflow-hidden flex flex-col">
         <UidSync />
         <Header />
-        <main className="flex-1 pb-20 md:pb-0">{children}</main>
+        <main id="main-scroll" className="flex-1 overflow-y-auto pb-4">
+          <ScrollReset />
+          {children}
+        </main>
         <BottomNav />
       </body>
     </html>

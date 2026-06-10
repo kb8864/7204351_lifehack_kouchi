@@ -36,6 +36,21 @@
   box-sizing: border-box;
 }
 
+/* iOS Safari / LINE 等で URL バー伸縮・ラバーバンドにより fixed 要素がガタつく問題対策。
+   body スクロールをやめ、内部の <main id="main-scroll"> を唯一のスクロールコンテナにする。 */
+html,
+body {
+  height: 100%;        /* dvh 非対応環境向けフォールバック */
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#main-scroll {
+  /* ラバーバンド（オーバースクロール）の連鎖を抑制し、背後の body が動かないようにする */
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 body {
   /* 単色の和紙色 + 軽量な青海波パターンを静的に敷く（固定オーブ撤去で再描画コスト削減） */
   background-color: #FAF6F0;
