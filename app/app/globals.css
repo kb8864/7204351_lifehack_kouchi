@@ -46,6 +46,43 @@ body {
   border-radius: 2px;
 }
 
+/* スケルトンシマーアニメーション */
+@keyframes sk-shimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+.sk {
+  background: linear-gradient(90deg, #efefef 25%, #e4e4e4 50%, #efefef 75%);
+  background-size: 600px 100%;
+  animation: sk-shimmer 1.5s linear infinite;
+  border-radius: inherit;
+}
+
+/* ページ遷移トップローダー */
+@keyframes top-loader-slide {
+  0% { left: -60%; }
+  100% { left: 110%; }
+}
+.page-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  background: rgba(232, 90, 44, 0.15);
+  overflow: hidden;
+}
+.page-loader::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 60%;
+  background: linear-gradient(90deg, transparent, #E85A2C 50%, transparent);
+  animation: top-loader-slide 1.3s ease-in-out infinite;
+}
+
 /* 横スクロールのスクロールバーを非表示 */
 .scrollbar-hide {
   scrollbar-width: none;

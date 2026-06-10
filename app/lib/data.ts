@@ -193,16 +193,26 @@ export async function getAllSupabaseLifehacks(): Promise<Lifehack[]> {
   return results.flat()
 }
 
-/** hidden_json_ids テーブルから非表示JSONのIDセットを取得 */
+/** hidden_json_ids テーブルから非表示JSONのIDセットを取得（60秒キャッシュ） */
+import { unstable_cache } from 'next/cache'
+
+const getCachedHiddenIds = unstable_cache(
+  async (): Promise<number[]> => {
+    try {
+      const { createServerClient } = await import('@/lib/supabase')
+      const supabase = createServerClient()
+      const { data } = await supabase.from('hidden_json_ids').select('id')
+      return (data ?? []).map((row: { id: number }) => row.id)
+    } catch {
+      return []
+    }
+  },
+  ['hidden-json-ids'],
+  { revalidate: 60 }
+)
+
 export async function getHiddenJsonIds(): Promise<Set<number>> {
-  try {
-    const { createServerClient } = await import('@/lib/supabase')
-    const supabase = createServerClient()
-    const { data } = await supabase.from('hidden_json_ids').select('id')
-    return new Set((data ?? []).map((row: { id: number }) => row.id))
-  } catch {
-    return new Set()
-  }
+  return new Set(await getCachedHiddenIds())
 }
 
 export function getCategoryCounts(): Record<Category, number> {
