@@ -1,50 +1,26 @@
-'use client'
-
-import { useEffect, useState } from 'react'
+import { cookies } from 'next/headers'
+import { createServerClient } from '@/lib/supabase'
+import { getLifehackByDisplayId } from '@/lib/data'
 import type { Lifehack } from '@/types'
 import LifehackCard from '@/components/LifehackCard'
 
-const STORAGE_KEY = 'shichifuku_favorites'
+export default async function FavoritesPage() {
+  const cookieStore = await cookies()
+  const uid = cookieStore.get('shichifuku_uid')?.value
 
-export default function FavoritesPage() {
-  const [lifehacks, setLifehacks] = useState<Lifehack[]>([])
-  const [loading, setLoading] = useState(true)
+  let lifehacks: Lifehack[] = []
 
-  useEffect(() => {
-    const ids: number[] = (() => {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-      } catch {
-        return []
-      }
-    })()
+  if (uid) {
+    const supabase = createServerClient()
+    const { data: favs } = await supabase
+      .from('anonymous_favorites')
+      .select('lifehack_id')
+      .eq('uid', uid)
+      .order('created_at', { ascending: false })
 
-    if (ids.length === 0) {
-      setLoading(false)
-      return
-    }
-
-    fetch(`/api/lifehacks/batch?ids=${ids.join(',')}`)
-      .then((r) => r.json())
-      .then((data) => setLifehacks(data.lifehacks ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-3 mb-6">
-          <span className="text-3xl">❤️</span>
-          <h1 className="text-xl font-bold text-[#1C1C1E]">お気に入り</h1>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="glass-card rounded-2xl overflow-hidden h-52 sk" />
-          ))}
-        </div>
-      </div>
-    )
+    lifehacks = (
+      await Promise.all((favs ?? []).map((f) => getLifehackByDisplayId(f.lifehack_id)))
+    ).filter((lh): lh is Lifehack => lh !== null)
   }
 
   return (

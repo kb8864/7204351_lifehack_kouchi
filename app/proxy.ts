@@ -1,24 +1,17 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
-import { COOKIE_NAME } from './lib/constants'
 
 const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET!)
 
-// ログインが必要なルート（お気に入りはlocalStorage化のため不要）
-const PROTECTED_ROUTES: string[] = []
-// 管理者のみアクセス可能なルート（/admin/login は除外）
 const ADMIN_ROUTES = ['/admin']
 const ADMIN_PUBLIC_ROUTES = ['/admin/login']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r))
   const isAdminPublic = ADMIN_PUBLIC_ROUTES.some((r) => pathname.startsWith(r))
   const isAdmin = !isAdminPublic && ADMIN_ROUTES.some((r) => pathname.startsWith(r))
-
-  if (!isProtected && !isAdmin) return NextResponse.next()
 
   // 管理者ルート: admin_session Cookie で検証
   if (isAdmin) {
@@ -34,25 +27,20 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }
 
-  // 一般保護ルート（/favorites）: LINE JWT で検証
-  const token = request.cookies.get(COOKIE_NAME)?.value
-
-  if (!token) {
-    const loginUrl = new URL('/api/auth/line', request.url)
-    loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
+  // 全ページ共通：匿名UIDクッキーがなければ発行（5年有効）
+  const response = NextResponse.next()
+  if (!request.cookies.get('shichifuku_uid')?.value) {
+    response.cookies.set('shichifuku_uid', crypto.randomUUID(), {
+      maxAge: 60 * 60 * 24 * 365 * 5,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false, // クライアントJSからも読める
+      path: '/',
+    })
   }
-
-  try {
-    await jwtVerify(token, getSecret())
-    return NextResponse.next()
-  } catch {
-    const loginUrl = new URL('/api/auth/line', request.url)
-    loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
+  return response
 }
 
 export const config = {
-  matcher: ['/favorites/:path*', '/admin/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon\\.ico).*)'],
 }

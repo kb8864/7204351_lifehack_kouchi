@@ -1,38 +1,48 @@
 import { NextResponse } from 'next/server'
-import { getSessionFromRequest } from '@/lib/auth'
+import { cookies } from 'next/headers'
 import { createServerClient } from '@/lib/supabase'
 
-// お気に入りのトグル (POST)
+// お気に入り状態確認 (GET)
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const uid = searchParams.get('uid')
+  const lifehack_id = Number(searchParams.get('lifehack_id'))
+  if (!uid || !lifehack_id) return NextResponse.json({ favorited: false })
+
+  const supabase = createServerClient()
+  const { data } = await supabase
+    .from('anonymous_favorites')
+    .select('uid')
+    .eq('uid', uid)
+    .eq('lifehack_id', lifehack_id)
+    .maybeSingle()
+
+  return NextResponse.json({ favorited: !!data })
+}
+
+// お気に入りトグル (POST)
 export async function POST(req: Request) {
-  const session = await getSessionFromRequest(req)
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const cookieStore = await cookies()
+  const uid = cookieStore.get('shichifuku_uid')?.value
+  if (!uid) return NextResponse.json({ error: 'uid not found' }, { status: 400 })
 
   const { lifehack_id } = await req.json()
-  if (!lifehack_id) {
-    return NextResponse.json({ error: 'lifehack_id required' }, { status: 400 })
-  }
+  if (!lifehack_id) return NextResponse.json({ error: 'lifehack_id required' }, { status: 400 })
 
   const supabase = createServerClient()
 
-  // 既にお気に入り済みか確認
   const { data: existing } = await supabase
-    .from('favorites')
-    .select('id')
-    .eq('user_id', session.id)
+    .from('anonymous_favorites')
+    .select('uid')
+    .eq('uid', uid)
     .eq('lifehack_id', lifehack_id)
-    .single()
+    .maybeSingle()
 
   if (existing) {
-    // 削除
-    const { error: delError } = await supabase.from('favorites').delete().eq('id', existing.id)
-    if (delError) return NextResponse.json({ error: delError.message }, { status: 500 })
+    await supabase.from('anonymous_favorites').delete().eq('uid', uid).eq('lifehack_id', lifehack_id)
     return NextResponse.json({ favorited: false })
   } else {
-    // 追加
-    const { error: insError } = await supabase.from('favorites').insert({ user_id: session.id, lifehack_id })
-    if (insError) return NextResponse.json({ error: insError.message }, { status: 500 })
+    await supabase.from('anonymous_favorites').insert({ uid, lifehack_id })
     return NextResponse.json({ favorited: true })
   }
 }

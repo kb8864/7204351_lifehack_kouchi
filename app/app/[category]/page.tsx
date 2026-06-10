@@ -20,7 +20,7 @@ interface Props {
 const getCachedFavCounts = unstable_cache(
   async (ids: number[]) => {
     const supabase = createServerClient()
-    const { data } = await supabase.from('favorites').select('lifehack_id').in('lifehack_id', ids)
+    const { data } = await supabase.from('anonymous_favorites').select('lifehack_id').in('lifehack_id', ids)
     return data ?? []
   },
   ['fav-counts'],
