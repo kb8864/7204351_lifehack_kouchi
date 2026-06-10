@@ -69,17 +69,20 @@ export default async function HomePage() {
     .slice(0, 12)
     .map(([tag]) => tag)
 
+  const RANK_MEDALS = ['🥇', '🥈', '🥉']
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-8">
       {/* ヒーロー */}
-      <div className="text-center py-4">
-        <p className="text-[#8E8E93] text-sm">
+      <div className="text-center py-6">
+        <p className="text-[#8E8E93] text-sm tracking-wide mb-2">
           今年最高に楽しい夏を過ごすあなたへ
         </p>
-
-        <h2 className="text-2xl font-bold text-[#1C1C1E] mb-2">
-          🍉夏のライフハック集🌻
+        <h2 className="text-3xl font-black leading-tight mb-1"
+          style={{ background: 'linear-gradient(135deg, #E85A2C 0%, #FF8C42 50%, #FFB347 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+          夏のライフハック集
         </h2>
+        <p className="text-2xl">🍉🌻</p>
       </div>
 
       {/* インライン検索（画面遷移なし） */}
@@ -87,23 +90,26 @@ export default async function HomePage() {
 
       {/* カテゴリカード */}
       <section>
-        <h3 className="font-bold text-[#1C1C1E] mb-3">カテゴリから探す</h3>
+        <h3 className="font-bold text-[#1C1C1E] mb-3 text-base">カテゴリから探す</h3>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {(Object.entries(CATEGORIES) as [Category, (typeof CATEGORIES)[Category]][]).map(
             ([slug, info]) => (
               <Link
                 key={slug}
                 href={`/${slug}`}
-                className={`${info.borderColor} border-2 rounded-2xl overflow-hidden hover:shadow-md transition-all bg-white shrink-0 w-52`}
+                className="glass-card rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 active:scale-[0.98] shrink-0 w-48"
               >
-                <Image
-                  src={info.image}
-                  alt={info.label}
-                  width={400}
-                  height={400}
-                  className="w-full h-auto"
-                />
-                <div className={`${info.bgColor} px-3 py-2`}>
+                <div className="relative">
+                  <Image
+                    src={info.image}
+                    alt={info.label}
+                    width={400}
+                    height={400}
+                    className="w-full h-auto"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                </div>
+                <div className="px-3 py-2.5">
                   <div className={`font-bold text-sm ${info.color}`}>{info.icon} {info.label}</div>
                   <div className="text-xs text-[#8E8E93] mt-0.5">{counts[slug]}件のハック</div>
                 </div>
@@ -116,8 +122,9 @@ export default async function HomePage() {
       {/* 週間ランキング */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-[#1C1C1E]">🏆 アクセス数の多いライフハック</h3>
-          <Link href="/ranking" className="text-sm text-[#E85A2C] font-medium">
+          <h3 className="font-bold text-[#1C1C1E] text-base">🏆 アクセス数の多いライフハック</h3>
+          <Link href="/ranking" className="text-sm font-medium"
+            style={{ color: '#E85A2C' }}>
             もっと見る →
           </Link>
         </div>
@@ -129,19 +136,13 @@ export default async function HomePage() {
               <Link
                 key={lh.id}
                 href={`/lifehack/${lh.id}`}
-                className="flex items-center gap-3 bg-white rounded-xl p-3 border border-[#E5E5EA] hover:shadow-sm transition-shadow"
+                className="flex items-center gap-3 glass-card rounded-2xl p-3.5 hover:shadow-md transition-all duration-200 active:scale-[0.99]"
               >
-                <span
-                  className={`text-lg font-bold w-7 text-center ${
-                    i === 0 ? 'text-yellow-500' : i === 1 ? 'text-gray-400' : 'text-amber-600'
-                  }`}
-                >
-                  {i + 1}
-                </span>
+                <span className="text-2xl w-8 text-center flex-shrink-0">{RANK_MEDALS[i] ?? i + 1}</span>
                 <span className="text-sm font-medium text-[#1C1C1E] flex-1 line-clamp-1">
                   {lh.title || lh.description.slice(0, 30) + '…'}
                 </span>
-                <span className="text-xs">{CATEGORIES[lh.category]?.icon}</span>
+                <span className="text-base">{CATEGORIES[lh.category]?.icon}</span>
               </Link>
             ))}
           </div>

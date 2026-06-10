@@ -8,7 +8,7 @@ interface HeaderProps {
 
 export default function Header({ session }: HeaderProps) {
   return (
-    <header className="bg-white border-b border-[#E5E5EA] sticky top-0 z-50">
+    <header className="glass-card border-b border-white/60 sticky top-0 z-50 shadow-sm">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* ロゴ */}
         <Link href="/" className="flex items-center gap-2">

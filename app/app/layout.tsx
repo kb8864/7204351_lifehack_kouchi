@@ -23,7 +23,13 @@ export default async function RootLayout({
 
   return (
     <html lang="ja" className="h-full">
-      <body className="min-h-full flex flex-col bg-[#F7F7F5]">
+      <body className="min-h-full flex flex-col">
+        {/* グラスモーフィズム用 背景装飾オーブ（固定） */}
+        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+          <div className="bg-orb-orange absolute -top-40 -right-32 w-[480px] h-[480px] rounded-full" />
+          <div className="bg-orb-amber absolute bottom-10 -left-24 w-[380px] h-[380px] rounded-full" />
+          <div className="bg-orb-rose absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full" />
+        </div>
         <Header session={session} />
         <main className="flex-1 pb-20 md:pb-0">{children}</main>
         <BottomNav />

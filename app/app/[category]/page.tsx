@@ -124,10 +124,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       </nav>
 
       {/* ヘッダー */}
-      <div className={`${info.bgColor} ${info.borderColor} border-2 rounded-2xl p-5`}>
-        <div className="text-4xl mb-1">{info.icon}</div>
-        <h1 className={`text-2xl font-bold ${info.color}`}>{info.label}</h1>
-        <p className="text-sm text-[#8E8E93] mt-1">{lifehacks.length}件のライフハック</p>
+      <div className={`glass-card rounded-2xl overflow-hidden`}>
+        <div className={`${info.bgColor} border-b ${info.borderColor} px-5 pt-5 pb-4`}>
+          <div className="text-5xl mb-2">{info.icon}</div>
+          <h1 className={`text-2xl font-black ${info.color}`}>{info.label}</h1>
+          <p className="text-sm text-[#8E8E93] mt-1">{lifehacks.length}件のライフハック</p>
+        </div>
       </div>
 
       {/* 他カテゴリへの動線 */}

@@ -29,10 +29,30 @@
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(145deg, #fff5ef 0%, #fffcf9 45%, #fff8f5 100%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: "Noto Sans JP", sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* グラスモーフィズム背景用 装飾オーブ */
+.bg-orb-orange {
+  background: radial-gradient(circle, rgba(232, 90, 44, 0.18) 0%, transparent 70%);
+}
+.bg-orb-amber {
+  background: radial-gradient(circle, rgba(255, 175, 50, 0.14) 0%, transparent 70%);
+}
+.bg-orb-rose {
+  background: radial-gradient(circle, rgba(255, 100, 100, 0.10) 0%, transparent 70%);
+}
+
+/* グラスカード共通 */
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
 }
 
 ::-webkit-scrollbar {
@@ -52,7 +72,7 @@ body {
   100% { background-position: 600px 0; }
 }
 .sk {
-  background: linear-gradient(90deg, #efefef 25%, #e4e4e4 50%, #efefef 75%);
+  background: linear-gradient(90deg, rgba(255,245,240,0.8) 25%, rgba(255,230,220,0.6) 50%, rgba(255,245,240,0.8) 75%);
   background-size: 600px 100%;
   animation: sk-shimmer 1.5s linear infinite;
   border-radius: inherit;
