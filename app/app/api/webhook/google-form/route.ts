@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase'
 import { CATEGORY_SLUGS, TAG_COLORS } from '@/lib/constants'
 import type { Category } from '@/types'
@@ -63,6 +64,10 @@ export async function POST(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // 登録されたカテゴリページとホームを即時再生成
+  revalidatePath('/')
+  revalidatePath(`/${category}`)
 
   return NextResponse.json({ success: true, message: '登録しました' })
 }

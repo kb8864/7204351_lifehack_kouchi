@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
 import { SUPABASE_ID_OFFSET } from '@/lib/data'
+
+function revalidateAll() {
+  revalidatePath('/', 'layout')
+  revalidateTag('hidden-json-ids')
+}
 
 interface Params {
   params: Promise<{ id: string }>
@@ -64,6 +70,7 @@ export async function PATCH(req: Request, { params }: Params) {
         .eq('id', numId - SUPABASE_ID_OFFSET)
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     }
+    revalidateAll()
     return NextResponse.json({ restored: true })
   }
 
@@ -77,6 +84,7 @@ export async function PATCH(req: Request, { params }: Params) {
         .update({ is_deleted: true })
         .eq('id', numId - SUPABASE_ID_OFFSET)
     }
+    revalidateAll()
     return NextResponse.json({ deleted: true })
   }
 
@@ -87,6 +95,7 @@ export async function PATCH(req: Request, { params }: Params) {
       .update({ is_approved: body.is_approved })
       .eq('id', numId - SUPABASE_ID_OFFSET)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    revalidateAll()
   }
 
   return NextResponse.json({ success: true })
@@ -116,5 +125,6 @@ export async function DELETE(req: Request, { params }: Params) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  revalidateAll()
   return NextResponse.json({ success: true })
 }

@@ -208,7 +208,7 @@ const getCachedHiddenIds = unstable_cache(
     }
   },
   ['hidden-json-ids'],
-  { revalidate: 60 }
+  { revalidate: 3600, tags: ['hidden-json-ids'] }
 )
 
 export async function getHiddenJsonIds(): Promise<Set<number>> {
