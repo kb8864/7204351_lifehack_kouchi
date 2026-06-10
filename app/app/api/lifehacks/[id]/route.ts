@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
 import { SUPABASE_ID_OFFSET } from '@/lib/data'
 
 function revalidateAll() {
   revalidatePath('/', 'layout')
-  revalidateTag('hidden-json-ids')
 }
 
 interface Params {
