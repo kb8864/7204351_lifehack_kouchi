@@ -14,6 +14,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import type { Category, Lifehack } from '@/types'
+import { buildSearchKey, matchesQuery } from './search-text'
 
 // SupabaseのIDとJSONのID（1-76）が衝突しないようオフセットを加算
 export const SUPABASE_ID_OFFSET = 10000
@@ -92,13 +93,7 @@ export function getLifehackById(id: number): Lifehack | null {
 export function searchLifehacks(query: string, category?: Category): Lifehack[] {
   const source = category ? getLifehacksByCategory(category) : getAllLifehacks()
   if (!query) return source
-  const q = query.toLowerCase()
-  return source.filter(
-    (lh) =>
-      lh.description.toLowerCase().includes(q) ||
-      (lh.title?.toLowerCase().includes(q)) ||
-      lh.tags.some((t) => t.toLowerCase().includes(q))
-  )
+  return source.filter((lh) => matchesQuery(buildSearchKey(lh), query))
 }
 
 /**

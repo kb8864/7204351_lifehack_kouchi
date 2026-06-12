@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { searchLifehacks, getAllSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
+import { buildSearchKey, matchesQuery } from '@/lib/search-text'
 import { getOgpImageMap } from '@/lib/ogp'
 import { getFavoriteCounts } from '@/lib/favorites'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
@@ -20,16 +21,11 @@ async function search(query: string, category: string): Promise<Lifehack[]> {
   ])
   const jsonResults = searchLifehacks(query, (category as Category) || undefined)
     .filter((lh) => !hiddenIds.has(lh.id))
-  const q = query.toLowerCase()
   const cat = category as Category | undefined
   const supabaseFiltered = supabaseAll.filter((lh) => {
     if (cat && lh.category !== cat) return false
     if (!query) return true
-    return (
-      lh.description.toLowerCase().includes(q) ||
-      lh.title?.toLowerCase().includes(q) ||
-      lh.tags.some((t) => t.toLowerCase().includes(q))
-    )
+    return matchesQuery(buildSearchKey(lh), query)
   })
 
   const results = [...jsonResults, ...supabaseFiltered]

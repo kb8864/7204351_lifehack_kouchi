@@ -1,51 +1,29 @@
 export const revalidate = 60
 
 import { notFound } from 'next/navigation'
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
-import { getLifehacksByCategory, searchLifehacks, getSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
+import { getLifehacksByCategory, getSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
 import { getOgpImageMap } from '@/lib/ogp'
 import { getFavoriteCounts } from '@/lib/favorites'
 import type { Category, Lifehack } from '@/types'
-import LifehackCard from '@/components/LifehackCard'
-import CategoryFilter from '@/components/CategoryFilter'
+import CategoryBrowser from '@/components/CategoryBrowser'
 
 interface Props {
   params: Promise<{ category: string }>
   searchParams: Promise<{ tag?: string; q?: string }>
 }
 
-async function getLifehacks(
-  category: Category,
-  tag: string,
-  query: string
-): Promise<Lifehack[]> {
+async function getLifehacks(category: Category): Promise<Lifehack[]> {
   const hiddenIds = await getHiddenJsonIds()
 
   // JSONから取得してフィルタリング（非表示を除外）
-  let jsonLifehacks = (query
-    ? searchLifehacks(query, category)
-    : getLifehacksByCategory(category)
-  ).filter((lh) => !hiddenIds.has(lh.id))
-
-  if (tag) {
-    jsonLifehacks = jsonLifehacks.filter((lh) => lh.tags.includes(tag))
-  }
+  const jsonLifehacks = getLifehacksByCategory(category).filter(
+    (lh) => !hiddenIds.has(lh.id)
+  )
 
   // Supabaseからフォーム投稿データを取得してマージ
-  let supabaseLifehacks = await getSupabaseLifehacks(category)
-  if (tag) {
-    supabaseLifehacks = supabaseLifehacks.filter((lh) => lh.tags.includes(tag))
-  }
-  if (query) {
-    const q = query.toLowerCase()
-    supabaseLifehacks = supabaseLifehacks.filter(
-      (lh) =>
-        lh.description.toLowerCase().includes(q) ||
-        (lh.title?.toLowerCase().includes(q))
-    )
-  }
+  const supabaseLifehacks = await getSupabaseLifehacks(category)
 
   let lifehacks = [...jsonLifehacks, ...supabaseLifehacks]
 
@@ -75,9 +53,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const category = categorySlug as Category
   const info = CATEGORIES[category]
 
-  const lifehacks = await getLifehacks(category, tag, q)
+  const lifehacks = await getLifehacks(category)
   const ogpMap = await getOgpImageMap(lifehacks)
-  const allTags = [...new Set(lifehacks.flatMap((lh) => lh.tags))]
 
   const otherCategories = (Object.entries(CATEGORIES) as [Category, (typeof CATEGORIES)[Category]][])
     .filter(([slug]) => slug !== category)
@@ -116,29 +93,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         ))}
       </div>
 
-      {/* フィルター */}
-      <Suspense>
-        <CategoryFilter
-          category={category}
-          tags={allTags}
-          activeTag={tag}
-          searchQuery={q}
-        />
-      </Suspense>
-
-      {/* 一覧 */}
-      {lifehacks.length === 0 ? (
-        <div className="text-center py-16 text-[var(--muted)]">
-          <div className="text-4xl mb-3">🔍</div>
-          <p>該当するライフハックが見つかりませんでした</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {lifehacks.map((lh) => (
-            <LifehackCard key={lh.id} lifehack={lh} ogpImageUrl={ogpMap[lh.id] ?? null} />
-          ))}
-        </div>
-      )}
+      {/* クライアントサイドフィルター + 一覧 */}
+      <CategoryBrowser
+        category={category}
+        lifehacks={lifehacks}
+        ogpMap={ogpMap}
+        initialQuery={q}
+        initialTag={tag}
+      />
     </div>
   )
 }
