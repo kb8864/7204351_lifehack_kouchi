@@ -300,3 +300,35 @@ export async function getCategoryListing(category: Category): Promise<Lifehack[]
     }
   })
 }
+
+/**
+ * 跨り(placements)を反映した実効カテゴリ件数。getCategoryListing(c).length と一致する。
+ *   - 未管理ライフハック: 元の単一カテゴリで1カウント。
+ *   - 管理済みライフハック: 配置されている各カテゴリでそれぞれ1カウント（複数計上）。
+ * placements未取得（テーブル未作成等）の場合は全て未管理扱いとなり従来の件数になる。
+ */
+export async function getEffectiveCategoryCounts(): Promise<Record<Category, number>> {
+  const { getPlacements } = await import('@/lib/overrides')
+  const [base, placements] = await Promise.all([
+    getAllBaseLifehacks(),
+    getPlacements(),
+  ])
+  const baseIds = new Set(base.map((lh) => lh.id))
+  const { byCategory, managedIds } = placements
+
+  const counts = Object.fromEntries(
+    CATEGORY_SLUGS.map((c) => [c, 0])
+  ) as Record<Category, number>
+
+  // 未管理ネイティブ: 元カテゴリで計上
+  for (const lh of base) {
+    if (!managedIds.has(lh.id)) counts[lh.category]++
+  }
+  // 管理済み: 配置先カテゴリごとに計上（baseに存在するもののみ）
+  for (const c of CATEGORY_SLUGS) {
+    for (const p of byCategory.get(c) ?? []) {
+      if (baseIds.has(p.display_id)) counts[c]++
+    }
+  }
+  return counts
+}
