@@ -1,7 +1,8 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { searchLifehacks, getAllSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
+import { getAllLifehacks, getAllSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
 import { buildSearchKey, matchesQuery } from '@/lib/search-text'
+import { getPlacements, getTagOverrides, applyOverridesToOne } from '@/lib/overrides'
 import { getOgpImageMap } from '@/lib/ogp'
 import { getFavoriteCounts } from '@/lib/favorites'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
@@ -15,20 +16,28 @@ interface Props {
 
 async function search(query: string, category: string): Promise<Lifehack[]> {
   if (!query && !category) return []
-  const [hiddenIds, supabaseAll] = await Promise.all([
+  const [hiddenIds, supabaseAll, placements, tagOv] = await Promise.all([
     getHiddenJsonIds(),
     getAllSupabaseLifehacks(),
+    getPlacements(),
+    getTagOverrides(),
   ])
-  const jsonResults = searchLifehacks(query, (category as Category) || undefined)
-    .filter((lh) => !hiddenIds.has(lh.id))
+
   const cat = category as Category | undefined
-  const supabaseFiltered = supabaseAll.filter((lh) => {
-    if (cat && lh.category !== cat) return false
+
+  // 母集合: JSON(非表示除外) + Supabase承認済み。タグ上書き・所属カテゴリを先に適用し、
+  // 検索（タグ照合）が上書き後タグでヒットするようにする。
+  const jsonBase = getAllLifehacks().filter((lh) => !hiddenIds.has(lh.id))
+  const allWithOverrides = [...jsonBase, ...supabaseAll].map((lh) =>
+    applyOverridesToOne(lh, placements, tagOv)
+  )
+
+  const results = allWithOverrides.filter((lh) => {
+    // カテゴリ絞り込みは「所属カテゴリ（複数）」で評価
+    if (cat && !(lh.categories ?? [lh.category]).includes(cat)) return false
     if (!query) return true
     return matchesQuery(buildSearchKey(lh), query)
   })
-
-  const results = [...jsonResults, ...supabaseFiltered]
 
   // お気に入り数をオーバーレイ（失敗しても表示は継続）
   const countMap = await getFavoriteCounts(results.map((lh) => lh.id))

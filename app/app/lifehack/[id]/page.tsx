@@ -5,7 +5,9 @@ import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
 import { fetchOgpImage as fetchOGPImage } from '@/lib/ogp'
 import { getLifehackById, SUPABASE_ID_OFFSET, getHiddenJsonIds } from '@/lib/data'
+import { getPlacements, getTagOverrides, applyOverridesToOne } from '@/lib/overrides'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
+import type { Category } from '@/types'
 import FavoriteButton from '@/components/FavoriteButton'
 
 interface Props {
@@ -66,6 +68,11 @@ export default async function LifehackDetailPage({ params }: Props) {
   }
   if (!lifehack) notFound()
 
+  // タグ上書き・所属カテゴリ（複数）を適用（基調色 lh.category は維持）
+  const [placements, tagOv] = await Promise.all([getPlacements(), getTagOverrides()])
+  lifehack = applyOverridesToOne(lifehack, placements, tagOv)
+  const memberCategories: Category[] = (lifehack.categories ?? [lifehack.category])
+
   // uid を Cookie から読む
   const cookieStore = await cookies()
   const uid = cookieStore.get('shichifuku_uid')?.value
@@ -117,6 +124,26 @@ export default async function LifehackDetailPage({ params }: Props) {
           {info.icon} {info.label}
         </Link>
       </nav>
+
+      {/* 所属カテゴリチップ（複数カテゴリにまたがる場合に表示） */}
+      {memberCategories.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {memberCategories.map((cat) => {
+            const catInfo = CATEGORIES[cat]
+            if (!catInfo) return null
+            return (
+              <Link
+                key={cat}
+                href={`/${cat}`}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors ${catInfo.bgColor} ${catInfo.borderColor} ${catInfo.color} hover:opacity-80`}
+              >
+                <span>{catInfo.icon}</span>
+                <span>{catInfo.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      )}
 
       <article className="glass-card rounded-2xl shadow-sm overflow-hidden">
         {/* のれん風の朱色帯 */}

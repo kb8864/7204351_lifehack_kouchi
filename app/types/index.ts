@@ -13,6 +13,8 @@ export interface Lifehack {
   created_at: string
   favorite_count?: number
   is_favorited?: boolean
+  /** そのライフハックが所属する全カテゴリ（一覧/詳細でチップ表示に使う）。未設定時は単一 category 相当 */
+  categories?: Category[]
 }
 
 export interface User {

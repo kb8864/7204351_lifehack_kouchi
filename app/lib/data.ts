@@ -218,3 +218,85 @@ export function getCategoryCounts(): Record<Category, number> {
   all.forEach((lh) => counts[lh.category]++)
   return counts
 }
+
+/**
+ * 全ライフハックの母集合（display_id = lh.id）。
+ *   JSON(getAllLifehacks)から hiddenJsonIds を除外したもの
+ *   + 全Supabase承認済み(getAllSupabaseLifehacks)。
+ * 各要素は「デフォルトカテゴリ(=元のcategory)」「ベースtags」を持つ素のLifehack。
+ */
+export async function getAllBaseLifehacks(): Promise<Lifehack[]> {
+  const [hiddenIds, supabaseLifehacks] = await Promise.all([
+    getHiddenJsonIds(),
+    getAllSupabaseLifehacks(),
+  ])
+  const jsonLifehacks = getAllLifehacks().filter((lh) => !hiddenIds.has(lh.id))
+  return [...jsonLifehacks, ...supabaseLifehacks]
+}
+
+/**
+ * カテゴリページの中核。配置(placements)とタグ上書きを反映した順序付き一覧を返す。
+ *
+ * 並び替え・所属判定:
+ *   - 配置済み: placementsByCat.get(category) の各 {display_id, position} について
+ *     base にあれば採用（position採用）。
+ *   - 未管理ネイティブ: base の中で lh.category===category かつ !managedIds.has(lh.id)。
+ *     position は base配列内でそのカテゴリに属する順(0,1,2...)を使う。
+ *   - display_id で重複排除（配置済みを優先）。
+ *   - position昇順、同値は display_id 昇順で安定ソート。
+ *
+ * 各採用要素はコピーして category(文脈)・tags(上書き)・categories(所属) を埋める。
+ */
+export async function getCategoryListing(category: Category): Promise<Lifehack[]> {
+  const { getPlacements, getTagOverrides } = await import('@/lib/overrides')
+
+  const [base, placements, tagOv] = await Promise.all([
+    getAllBaseLifehacks(),
+    getPlacements(),
+    getTagOverrides(),
+  ])
+
+  const baseById = new Map<number, Lifehack>()
+  for (const lh of base) baseById.set(lh.id, lh)
+
+  const { byCategory, managedIds, byDisplayId } = placements
+
+  // 採用する {id, position} を集める（配置済みを優先して重複排除）
+  const chosen = new Map<number, number>() // id -> 実効position
+
+  // 1) 配置済み
+  for (const p of byCategory.get(category) ?? []) {
+    if (baseById.has(p.display_id)) {
+      chosen.set(p.display_id, p.position)
+    }
+  }
+
+  // 2) 未管理ネイティブ（base内でこのカテゴリに属する順を実効positionに）
+  let nativeIndex = 0
+  for (const lh of base) {
+    if (lh.category !== category) continue
+    const isNative = !managedIds.has(lh.id)
+    const idx = nativeIndex++
+    if (isNative && !chosen.has(lh.id)) {
+      chosen.set(lh.id, idx)
+    }
+  }
+
+  // 並び替え: position昇順、同値はdisplay_id昇順
+  const ordered = [...chosen.entries()].sort(
+    (a, b) => a[1] - b[1] || a[0] - b[0]
+  )
+
+  return ordered.map(([id]) => {
+    const baseLh = baseById.get(id)!
+    const categories = managedIds.has(id)
+      ? ((byDisplayId.get(id) ?? [baseLh.category]) as Category[])
+      : ([baseLh.category] as Category[])
+    return {
+      ...baseLh,
+      category, // 文脈カテゴリ（カードの色/アイコン用）
+      tags: tagOv.get(id) ?? baseLh.tags,
+      categories,
+    }
+  })
+}

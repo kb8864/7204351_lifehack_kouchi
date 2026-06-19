@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
-import { getLifehacksByCategory, getSupabaseLifehacks, getHiddenJsonIds } from '@/lib/data'
+import { getCategoryListing } from '@/lib/data'
 import { getOgpImageMap } from '@/lib/ogp'
 import { getFavoriteCounts } from '@/lib/favorites'
 import type { Category, Lifehack } from '@/types'
@@ -15,17 +15,8 @@ interface Props {
 }
 
 async function getLifehacks(category: Category): Promise<Lifehack[]> {
-  const hiddenIds = await getHiddenJsonIds()
-
-  // JSONから取得してフィルタリング（非表示を除外）
-  const jsonLifehacks = getLifehacksByCategory(category).filter(
-    (lh) => !hiddenIds.has(lh.id)
-  )
-
-  // Supabaseからフォーム投稿データを取得してマージ
-  const supabaseLifehacks = await getSupabaseLifehacks(category)
-
-  let lifehacks = [...jsonLifehacks, ...supabaseLifehacks]
+  // 配置(複数カテゴリ所属/並び順)・タグ上書きを反映した順序付き一覧
+  let lifehacks = await getCategoryListing(category)
 
   // Supabaseからお気に入り情報をオーバーレイ（失敗しても続行）
   try {
