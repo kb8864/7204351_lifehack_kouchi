@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { revalidateTag, revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase'
 import { FAV_COUNTS_TAG } from '@/lib/favorites'
+import { CATEGORY_SLUGS } from '@/lib/constants'
 
 // お気に入り状態確認 (GET)
 export async function GET(req: Request) {
@@ -86,9 +87,7 @@ export async function POST(req: Request) {
   // キャッシュ無効化
   revalidateTag(FAV_COUNTS_TAG, 'max')
   revalidatePath('/')
-  revalidatePath('/food')
-  revalidatePath('/costume_make')
-  revalidatePath('/other')
+  for (const c of CATEGORY_SLUGS) revalidatePath(`/${c}`)
   revalidatePath(`/lifehack/${lifehack_id}`)
 
   const response = NextResponse.json({ favorited, count: count ?? 0 })

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
 import { buildSearchKey, matchesQuery } from '@/lib/search-text'
 import LifehackCard from '@/components/LifehackCard'
@@ -11,22 +11,19 @@ interface CategoryBrowserProps {
   category: Category
   lifehacks: Lifehack[]
   ogpMap: Record<number, string | null>
-  initialQuery: string
-  initialTag: string
 }
 
 export default function CategoryBrowser({
   category,
   lifehacks,
   ogpMap,
-  initialQuery,
-  initialTag,
 }: CategoryBrowserProps) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const info = CATEGORIES[category]
 
-  const [query, setQuery] = useState(initialQuery)
-  const [activeTag, setActiveTag] = useState(initialTag)
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '')
+  const [activeTag, setActiveTag] = useState(() => searchParams.get('tag') ?? '')
 
   // 全件からタグ一覧を生成
   const allTags = useMemo(

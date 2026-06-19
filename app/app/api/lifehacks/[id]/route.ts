@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase'
-import { SUPABASE_ID_OFFSET } from '@/lib/data'
+import { SUPABASE_ID_OFFSET, getLifehackById } from '@/lib/data'
 
-function revalidateAll() {
-  revalidatePath('/', 'layout')
+function revalidateForLifehack(category: string | null, displayId: number) {
+  revalidatePath('/')                         // ホーム（件数・ランキング）
+  revalidatePath('/ranking')
+  if (category) revalidatePath(`/${category}`) // 該当カテゴリ一覧
+  revalidatePath(`/lifehack/${displayId}`)     // 詳細ページ
 }
 
 interface Params {
@@ -39,6 +42,7 @@ export async function PUT(req: Request, { params }: Params) {
     .eq('id', numId - SUPABASE_ID_OFFSET)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  revalidateForLifehack(body.category ?? null, numId)
   return NextResponse.json({ success: true })
 }
 
@@ -61,40 +65,52 @@ export async function PATCH(req: Request, { params }: Params) {
       // JSON: hidden_json_ids から削除
       const { error } = await supabase.from('hidden_json_ids').delete().eq('id', numId)
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      const category = getLifehackById(numId)?.category ?? null
+      revalidateForLifehack(category, numId)
     } else {
       // Supabase: is_deleted = false
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('lifehacks')
         .update({ is_deleted: false })
         .eq('id', numId - SUPABASE_ID_OFFSET)
+        .select('category')
+        .maybeSingle()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      revalidateForLifehack(data?.category ?? null, numId)
     }
-    revalidateAll()
     return NextResponse.json({ restored: true })
   }
 
   // ソフトデリート (is_approved: null)
   if (body.is_approved === null) {
     if (isJsonId) {
-      await supabase.from('hidden_json_ids').upsert({ id: numId })
+      const { error } = await supabase.from('hidden_json_ids').upsert({ id: numId })
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      const category = getLifehackById(numId)?.category ?? null
+      revalidateForLifehack(category, numId)
     } else {
-      await supabase
+      const { data, error } = await supabase
         .from('lifehacks')
         .update({ is_deleted: true })
         .eq('id', numId - SUPABASE_ID_OFFSET)
+        .select('category')
+        .maybeSingle()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      revalidateForLifehack(data?.category ?? null, numId)
     }
-    revalidateAll()
     return NextResponse.json({ deleted: true })
   }
 
   // 承認状態変更 (Supabase のみ)
   if (!isJsonId) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('lifehacks')
       .update({ is_approved: body.is_approved })
       .eq('id', numId - SUPABASE_ID_OFFSET)
+      .select('category')
+      .maybeSingle()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    revalidateAll()
+    revalidateForLifehack(data?.category ?? null, numId)
   }
 
   return NextResponse.json({ success: true })
@@ -111,19 +127,24 @@ export async function DELETE(req: Request, { params }: Params) {
   const numId = parseInt(id, 10)
   const supabase = createServerClient()
 
+  let category: string | null = null
   if (numId < SUPABASE_ID_OFFSET) {
     // JSON ライフハック: hidden_json_ids に追加
     const { error } = await supabase.from('hidden_json_ids').upsert({ id: numId })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    category = getLifehackById(numId)?.category ?? null
   } else {
     // Supabase ライフハック: is_deleted = true
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('lifehacks')
       .update({ is_deleted: true })
       .eq('id', numId - SUPABASE_ID_OFFSET)
+      .select('category')
+      .maybeSingle()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    category = data?.category ?? null
   }
 
-  revalidateAll()
+  revalidateForLifehack(category, numId)
   return NextResponse.json({ success: true })
 }

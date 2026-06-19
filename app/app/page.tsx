@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase'
 import { getLifehacksByCategory, getHiddenJsonIds, getAllLifehacks, getAllSupabaseLifehacks, getLifehackByDisplayId } from '@/lib/data'
-import { CATEGORIES } from '@/lib/constants'
+import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
 import type { Category, Lifehack } from '@/types'
 import HomeSearch from '@/components/HomeSearch'
 
@@ -39,8 +39,8 @@ async function getLiveCategoryCounts(): Promise<Record<Category, number>> {
       .eq('is_deleted', false),
   ])
 
-  const counts: Record<Category, number> = { food: 0, costume_make: 0, other: 0 }
-  for (const cat of ['food', 'costume_make', 'other'] as Category[]) {
+  const counts = Object.fromEntries(CATEGORY_SLUGS.map((c) => [c, 0])) as Record<Category, number>
+  for (const cat of CATEGORY_SLUGS) {
     const jsonCount = getLifehacksByCategory(cat).filter((lh) => !hiddenIds.has(lh.id)).length
     const supabaseCount = (supabaseCounts ?? []).filter((r) => r.category === cat).length
     counts[cat] = jsonCount + supabaseCount

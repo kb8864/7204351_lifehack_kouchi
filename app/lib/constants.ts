@@ -25,6 +25,22 @@ costume_make: {
     borderColor: 'border-amber-200',
     image: '/images/other.jpg',
   },
+  practice: {
+    label: '練習',
+    icon: '💪',
+    color: 'text-teal-700',
+    bgColor: 'bg-teal-50',
+    borderColor: 'border-teal-200',
+    image: '/images/Practice.jpg',
+  },
+  festival: {
+    label: 'お祭り',
+    icon: '🏮',
+    color: 'text-rose-700',
+    bgColor: 'bg-rose-50',
+    borderColor: 'border-rose-200',
+    image: '/images/Festival.jpg',
+  },
 }
 
 export const CATEGORY_SLUGS = Object.keys(CATEGORIES) as Category[]

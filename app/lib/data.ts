@@ -14,12 +14,13 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import type { Category, Lifehack } from '@/types'
+import { CATEGORY_SLUGS } from '@/lib/constants'
 import { buildSearchKey, matchesQuery } from './search-text'
 
 // SupabaseのIDとJSONのID（1-76）が衝突しないようオフセットを加算
 export const SUPABASE_ID_OFFSET = 10000
 
-const CATEGORY_ORDER: Category[] = ['food', 'costume_make', 'other']
+const CATEGORY_ORDER: Category[] = ['food', 'costume_make', 'other', 'practice', 'festival']
 
 type RawLifehack = {
   id: number
@@ -213,7 +214,7 @@ export async function getHiddenJsonIds(): Promise<Set<number>> {
 
 export function getCategoryCounts(): Record<Category, number> {
   const all = getAllLifehacks()
-  const counts: Record<Category, number> = { food: 0, costume_make: 0, other: 0 }
+  const counts = Object.fromEntries(CATEGORY_SLUGS.map((c) => [c, 0])) as Record<Category, number>
   all.forEach((lh) => counts[lh.category]++)
   return counts
 }

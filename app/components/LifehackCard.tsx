@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Lifehack } from '@/types'
-import { TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
+import { TAG_COLORS, DEFAULT_TAG_COLOR, CATEGORIES } from '@/lib/constants'
 
 interface LifehackCardProps {
   lifehack: Lifehack
@@ -16,12 +16,16 @@ const CATEGORY_THUMB: Record<string, string> = {
   food:         'from-red-100 via-amber-50 to-orange-100',
   costume_make: 'from-indigo-100 via-blue-50 to-slate-100',
   other:        'from-amber-100 via-yellow-50 to-stone-100',
+  practice:     'from-teal-100 via-cyan-50 to-emerald-100',
+  festival:     'from-rose-100 via-pink-50 to-orange-100',
 }
 
 const CATEGORY_ACCENT: Record<string, string> = {
   food:         'from-red-600 to-red-800',
   costume_make: 'from-indigo-700 to-blue-900',
   other:        'from-amber-500 to-amber-700',
+  practice:     'from-teal-600 to-teal-800',
+  festival:     'from-rose-500 to-rose-700',
 }
 
 export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProps) {
@@ -50,10 +54,7 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
           />
         ) : (
           <div className={`w-full h-full bg-gradient-to-br ${thumbGrad} flex items-center justify-center`}>
-            <span className="text-5xl opacity-50">
-              {lifehack.category === 'food' ? '🥢' :
-               lifehack.category === 'costume_make' ? '👘' : '📦'}
-            </span>
+            <span className="text-5xl opacity-50">{CATEGORIES[lifehack.category]?.icon ?? '📦'}</span>
           </div>
         )}
       </div>

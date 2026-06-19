@@ -1,5 +1,6 @@
 export const revalidate = 60
 
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CATEGORIES, CATEGORY_SLUGS } from '@/lib/constants'
@@ -11,7 +12,6 @@ import CategoryBrowser from '@/components/CategoryBrowser'
 
 interface Props {
   params: Promise<{ category: string }>
-  searchParams: Promise<{ tag?: string; q?: string }>
 }
 
 async function getLifehacks(category: Category): Promise<Lifehack[]> {
@@ -42,9 +42,8 @@ async function getLifehacks(category: Category): Promise<Lifehack[]> {
   return lifehacks
 }
 
-export default async function CategoryPage({ params, searchParams }: Props) {
+export default async function CategoryPage({ params }: Props) {
   const { category: categorySlug } = await params
-  const { tag = '', q = '' } = await searchParams
 
   if (!CATEGORY_SLUGS.includes(categorySlug as Category)) {
     notFound()
@@ -94,13 +93,13 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       </div>
 
       {/* クライアントサイドフィルター + 一覧 */}
-      <CategoryBrowser
-        category={category}
-        lifehacks={lifehacks}
-        ogpMap={ogpMap}
-        initialQuery={q}
-        initialTag={tag}
-      />
+      <Suspense>
+        <CategoryBrowser
+          category={category}
+          lifehacks={lifehacks}
+          ogpMap={ogpMap}
+        />
+      </Suspense>
     </div>
   )
 }

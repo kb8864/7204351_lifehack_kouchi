@@ -11,6 +11,14 @@
  *   Q2-1 〜 Q2-4                              → 衣装・メイク (category: costume_make)
  *   Q3-1 〜 Q3-4                              → その他      (category: other)
  *
+ * ★ セクション4・5はリンク質問が無く、3問構成（Qn-3がタグ）:
+ *   Q4-1. 練習時のライフハックを教えてください      → 本文     (category: practice)
+ *   Q4-2. このライフハックのタイトルを…           → タイトル
+ *   Q4-3. 下のチェックボックスから…（最大2個）     → タグ（チェックボックス）
+ *   練習タグ候補: おすすめグッズ / 熱中症対策 / 豆知識 / その他
+ *   Q5-1 〜 Q5-3                              → お祭り      (category: festival)
+ *   お祭りタグ候補: おすすめグッズ / 熱中症対策 / 疲労回復 / 雨対策 / メイク / その他
+ *
  * 質問タイトルは「Q1-1」「Q2−3（全角ハイフン）」のような番号部分だけで判定するので、
  * 質問文の文言を多少変えても動作する。番号（Qn-m）は変えないこと。
  *
@@ -38,19 +46,28 @@ const SECTION_CATEGORY = {
   1: 'food', // 食事
   2: 'costume_make', // 衣装・メイク
   3: 'other', // その他
+  4: 'practice', // 練習
+  5: 'festival', // お祭り
 }
 
-// 設問番号 → 送信フィールド
-const FIELD_BY_SUBNUMBER = {
-  1: 'description', // Qn-1: 本文
-  2: 'title', // Qn-2: タイトル
-  3: 'link', // Qn-3: 商品リンク
-  4: 'tags', // Qn-4: タグ（チェックボックス）
+// リンク質問を持つセクション（1〜3）。4・5はリンク無しでQn-3がタグ
+const SECTION_HAS_LINK = { 1: true, 2: true, 3: true, 4: false, 5: false }
+
+function fieldFor(sectionNo, subNo) {
+  if (subNo === 1) return 'description'
+  if (subNo === 2) return 'title'
+  if (SECTION_HAS_LINK[sectionNo]) {
+    if (subNo === 3) return 'link'
+    if (subNo === 4) return 'tags'
+  } else {
+    if (subNo === 3) return 'tags'
+  }
+  return null
 }
 
-// 「Q1-1」「Q2−3」「Ｑ3ー4」など、半角/全角・各種ハイフンの揺れを吸収して
+// 「Q1-1」「Q2−3」「Ｑ5ー3」など、半角/全角・各種ハイフンの揺れを吸収して
 // セクション番号と設問番号を取り出す
-const QUESTION_NUMBER_RE = /[QＱ]\s*([1-3１-３])\s*[-−ー–—‐－]\s*([1-4１-４])/
+const QUESTION_NUMBER_RE = /[QＱ]\s*([1-5１-５])\s*[-−ー–—‐－]\s*([1-4１-４])/
 
 function toHalfWidthDigit(ch) {
   const code = ch.charCodeAt(0)
@@ -64,7 +81,7 @@ function onFormSubmit(e) {
 
   let author = ''
   // セクションごとの回答を貯める箱
-  const sections = { 1: {}, 2: {}, 3: {} }
+  const sections = { 1: {}, 2: {}, 3: {}, 4: {}, 5: {} }
 
   responses.forEach(function (response) {
     const questionTitle = response.getItem().getTitle()
@@ -84,7 +101,7 @@ function onFormSubmit(e) {
     }
     const sectionNo = Number(toHalfWidthDigit(m[1]))
     const subNo = Number(toHalfWidthDigit(m[2]))
-    const field = FIELD_BY_SUBNUMBER[subNo]
+    const field = fieldFor(sectionNo, subNo)
     if (!SECTION_CATEGORY[sectionNo] || !field) return
 
     sections[sectionNo][field] = answer
@@ -92,7 +109,7 @@ function onFormSubmit(e) {
 
   // 本文が記入されているセクションだけ、1件ずつWebhookに送信
   let sent = 0
-  for (let sectionNo = 1; sectionNo <= 3; sectionNo++) {
+  for (let sectionNo = 1; sectionNo <= 5; sectionNo++) {
     const s = sections[sectionNo]
     const description = s.description ? String(s.description).trim() : ''
     if (!description) continue // 空きセクションは無視
