@@ -75,7 +75,7 @@ export default async function CategoryPage({ params }: Props) {
           <Link
             key={slug}
             href={`/${slug}`}
-            className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full border-2 text-sm font-medium transition-colors ${cat.bgColor} ${cat.borderColor} ${cat.color}`}
+            className={`tap-press shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full border-2 text-sm font-medium ${cat.bgColor} ${cat.borderColor} ${cat.color}`}
           >
             <span>{cat.icon}</span>
             <span>{cat.label}</span>

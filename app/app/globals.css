@@ -131,6 +131,73 @@ body {
   animation: top-loader-slide 1.3s ease-in-out infinite;
 }
 
+/* 祭りシャイン（カードのアクセントバーを金色の光がスイープ） */
+@keyframes festival-shine-slide {
+  0%   { transform: translateX(-120%); }
+  60%  { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
+}
+.festival-shine {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.0) 35%,
+    rgba(201, 162, 39, 0.85) 50%,
+    rgba(255, 255, 255, 0.0) 65%,
+    transparent 100%
+  );
+  animation: festival-shine-slide 3.2s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* View Transitions（一覧サムネ→詳細ヒーローの共有要素モーフ）の所要時間を
+   祭りらしくテンポよく。非対応ブラウザでは無視される。 */
+::view-transition-group(*) {
+  animation-duration: 360ms;
+}
+
+/* prefers-reduced-motion: 重い装飾アニメを停止（CSS側のフォールバック。
+   motion 側は useReducedMotion() で別途縮退している） */
+@media (prefers-reduced-motion: reduce) {
+  .festival-shine,
+  .sk,
+  .page-loader::after {
+    animation: none !important;
+  }
+  .festival-shine {
+    display: none;
+  }
+  /* View Transitions の位置移動を無効化（瞬時スワップ） */
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* タップ押し込みフィードバック（Server Component の Link 用・CSSのみ）。
+   touch の :active で確実に発火させ、押した瞬間に沈み＋わずかに暗くなる。
+   :active 解除時はトランジションで戻る。波紋ではなく“押し込み”。 */
+.tap-press {
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.tap-press:active {
+  transform: scale(0.97);
+  filter: brightness(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tap-press {
+    transition: filter 0.12s ease;
+  }
+  .tap-press:active {
+    transform: none;
+    filter: brightness(0.96);
+  }
+}
+
 /* 横スクロールのスクロールバーを非表示 */
 .scrollbar-hide {
   scrollbar-width: none;

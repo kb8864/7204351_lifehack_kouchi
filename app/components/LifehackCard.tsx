@@ -1,7 +1,13 @@
+'use client'
+
+import { ViewTransition } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { motion, useReducedMotion } from 'motion/react'
 import type { Lifehack } from '@/types'
 import { TAG_COLORS, DEFAULT_TAG_COLOR, CATEGORIES } from '@/lib/constants'
+import { cardRise, cardRiseReduced, springPop } from '@/lib/motion'
+import { useRipple } from '@/components/motion/Ripple'
 
 interface LifehackCardProps {
   lifehack: Lifehack
@@ -28,35 +34,56 @@ const CATEGORY_ACCENT: Record<string, string> = {
   festival:     'from-rose-500 to-rose-700',
 }
 
+const MotionLink = motion.create(Link)
+
 export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProps) {
+  const reduce = useReducedMotion()
+  const { onPointerDown, rippleLayer } = useRipple()
   const thumbnail = lifehack.photo || ogpImageUrl || null
   const displayTitle = lifehack.title || truncate(lifehack.description, 30)
   const thumbGrad = CATEGORY_THUMB[lifehack.category] ?? 'from-gray-100 to-gray-50'
   const accentGrad = CATEGORY_ACCENT[lifehack.category] ?? 'from-gray-400 to-gray-300'
 
   return (
-    <Link
+    <MotionLink
       href={`/lifehack/${lifehack.id}`}
-      className="block glass-card rounded-2xl hover:-translate-y-1 active:scale-[0.98] transition-transform duration-200 overflow-hidden"
+      className="group block glass-card rounded-2xl overflow-hidden"
+      variants={reduce ? cardRiseReduced : cardRise}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.15 }}
+      whileHover={reduce ? undefined : { y: -6, rotate: -0.6, transition: springPop }}
+      whileTap={reduce ? undefined : { scale: 0.97 }}
+      onPointerDown={onPointerDown}
+      style={{ willChange: 'transform' }}
     >
-      {/* カテゴリアクセントバー */}
-      <div className={`h-1 w-full bg-gradient-to-r ${accentGrad}`} />
+      {/* タップ位置から広がる朱の波紋（カードは overflow-hidden でクリップ） */}
+      {rippleLayer}
 
-      {/* サムネイル */}
-      <div className="relative w-full h-36 overflow-hidden">
-        {thumbnail ? (
-          <Image
-            src={thumbnail}
-            alt={displayTitle}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${thumbGrad} flex items-center justify-center`}>
-            <span className="text-5xl opacity-50">{CATEGORIES[lifehack.category]?.icon ?? '📦'}</span>
-          </div>
+      {/* カテゴリアクセントバー（祭りシャインのスイープを重ねる） */}
+      <div className={`relative h-1 w-full bg-gradient-to-r ${accentGrad} overflow-hidden`}>
+        {!reduce && (
+          <span className="festival-shine pointer-events-none absolute inset-0" />
         )}
+      </div>
+
+      {/* サムネイル（詳細ヒーローへの共有要素モーフ用に view-transition-name を付与） */}
+      <div className="relative w-full h-36 overflow-hidden">
+        <ViewTransition name={`lh-thumb-${lifehack.id}`}>
+          {thumbnail ? (
+            <Image
+              src={thumbnail}
+              alt={displayTitle}
+              fill
+              className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+              unoptimized
+            />
+          ) : (
+            <div className={`w-full h-full bg-gradient-to-br ${thumbGrad} flex items-center justify-center transition-transform duration-300 ease-out group-hover:scale-105`}>
+              <span className="text-5xl opacity-50">{CATEGORIES[lifehack.category]?.icon ?? '📦'}</span>
+            </div>
+          )}
+        </ViewTransition>
       </div>
 
       {/* コンテンツ */}
@@ -90,6 +117,6 @@ export default function LifehackCard({ lifehack, ogpImageUrl }: LifehackCardProp
           </span>
         </div>
       </div>
-    </Link>
+    </MotionLink>
   )
 }

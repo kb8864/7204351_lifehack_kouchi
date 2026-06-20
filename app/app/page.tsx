@@ -93,7 +93,7 @@ export default async function HomePage() {
               <Link
                 key={slug}
                 href={`/${slug}`}
-                className="glass-card rounded-2xl overflow-hidden hover:-translate-y-1 transition-transform duration-200 active:scale-[0.98] shrink-0 w-48 shadow-sm"
+                className="tap-press glass-card rounded-2xl overflow-hidden hover:-translate-y-1 shrink-0 w-48 shadow-sm"
               >
                 <div className="relative">
                   <Image

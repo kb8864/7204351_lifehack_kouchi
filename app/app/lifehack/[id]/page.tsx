@@ -1,3 +1,4 @@
+import { ViewTransition } from 'react'
 import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
@@ -9,6 +10,9 @@ import { getPlacements, getTagOverrides, applyOverridesToOne } from '@/lib/overr
 import { CATEGORIES, TAG_COLORS, DEFAULT_TAG_COLOR } from '@/lib/constants'
 import type { Category } from '@/types'
 import FavoriteButton from '@/components/FavoriteButton'
+import DetailReveal from '@/components/motion/DetailReveal'
+import PopGroup from '@/components/motion/PopGroup'
+import ScaleIn from '@/components/motion/ScaleIn'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -127,7 +131,7 @@ export default async function LifehackDetailPage({ params }: Props) {
 
       {/* 所属カテゴリチップ（複数カテゴリにまたがる場合に表示） */}
       {memberCategories.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <PopGroup className="flex flex-wrap gap-1.5 mb-4">
           {memberCategories.map((cat) => {
             const catInfo = CATEGORIES[cat]
             if (!catInfo) return null
@@ -142,37 +146,39 @@ export default async function LifehackDetailPage({ params }: Props) {
               </Link>
             )
           })}
-        </div>
+        </PopGroup>
       )}
 
       <article className="glass-card rounded-2xl shadow-sm overflow-hidden">
         {/* のれん風の朱色帯 */}
         <div className="noren-bar h-1 w-full" />
-        {/* サムネイル */}
+        {/* サムネイル（スケールイン＋一覧サムネからの共有要素モーフ） */}
         {thumbnail && (
-          <div className="relative w-full h-52 bg-[var(--background)]">
-            <Image
-              src={thumbnail}
-              alt={lifehack.title || 'ライフハック'}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
+          <ScaleIn className="relative w-full h-52 bg-[var(--background)] overflow-hidden">
+            <ViewTransition name={`lh-thumb-${lifehack.id}`}>
+              <Image
+                src={thumbnail}
+                alt={lifehack.title || 'ライフハック'}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </ViewTransition>
+          </ScaleIn>
         )}
 
-        <div className="p-5 space-y-4">
+        <DetailReveal className="p-5 space-y-4">
           {/* タイトル */}
           <h1 className="font-wa text-xl font-bold text-[var(--foreground)] leading-snug">
             {lifehack.title || lifehack.description.slice(0, 40) + '…'}
           </h1>
 
           {/* 投稿者 */}
-          {lifehack.author && (
+          {lifehack.author ? (
             <p className="text-sm text-[var(--muted)]">
               💬 {lifehack.author}
             </p>
-          )}
+          ) : null}
 
           {/* タグ */}
           <div className="flex flex-wrap gap-1.5">
@@ -192,7 +198,7 @@ export default async function LifehackDetailPage({ params }: Props) {
           </div>
 
           {/* 商品リンク（httpで始まる正当なURLがある場合のみ表示） */}
-          {lifehack.link?.startsWith('http') && (
+          {lifehack.link?.startsWith('http') ? (
             <div>
               <a
                 href={lifehack.link}
@@ -205,7 +211,7 @@ export default async function LifehackDetailPage({ params }: Props) {
                 <span className="ml-auto">→</span>
               </a>
             </div>
-          )}
+          ) : null}
 
           {/* お気に入り */}
           <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
@@ -214,7 +220,7 @@ export default async function LifehackDetailPage({ params }: Props) {
               {totalFavorites > 0 ? `${totalFavorites}人がお気に入り` : ''}
             </span>
           </div>
-        </div>
+        </DetailReveal>
       </article>
 
       {/* 戻るリンク */}
