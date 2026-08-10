@@ -4,7 +4,7 @@ import './globals.css'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import UidSync from '@/components/UidSync'
-import ScrollReset from '@/components/ScrollReset'
+import ScrollMemory from '@/components/ScrollMemory'
 
 // 本文フォント（self-host / render-blocking 解消）
 const notoSansJP = Noto_Sans_JP({
@@ -45,7 +45,7 @@ export default function RootLayout({
         <UidSync />
         <Header />
         <main id="main-scroll" className="flex-1 overflow-y-auto pb-4">
-          <ScrollReset />
+          <ScrollMemory />
           {children}
         </main>
         <BottomNav />

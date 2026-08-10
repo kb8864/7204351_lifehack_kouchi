@@ -1,0 +1,8 @@
+file '/Users/kounoyuuta/Desktop/workspace/七福ライフハック/app/MoviesandImages/output/work/sc03_clip00.mp4'
+file '/Users/kounoyuuta/Desktop/workspace/七福ライフハック/app/MoviesandImages/output/work/sc03_clip01.mp4'
+file '/Users/kounoyuuta/Desktop/workspace/七福ライフハック/app/MoviesandImages/output/work/sc03_clip02.mp4'
+file '/Users/kounoyuuta/Desktop/workspace/七福ライフハック/app/MoviesandImages/output/work/sc03_clip03.mp4'
+file '/Users/kounoyuuta/Desktop/workspace/七福ライフハック/app/MoviesandImages/output/work/sc03_clip04.mp4'
+file '/Users/kounoyuuta/Desktop/workspace/七福ライフハック/app/MoviesandImages/output/work/sc03_clip05.mp4'
+file '/Users/kounoyuuta/Desktop/workspace/七福ライフハック/app/MoviesandImages/output/work/sc03_clip06.mp4'
+file '/Users/kounoyuuta/Desktop/workspace/七福ライフハック/app/MoviesandImages/output/work/sc03_clip07.mp4'
